@@ -1,0 +1,28 @@
+.founder-div{
+	height: 250px;
+}
+.founder-hr
+{
+	margin-top: -13px !important;
+}
+.founder-title
+{
+	font-size: 22px !important;
+	line-height: 23px !important;
+}
+.founder-p
+{
+	margin-top: -4px !important;
+}
+
+@media only screen and (max-width: 600px) {
+	.logincenter{
+	   	margin-left: -73px !important;
+	}
+	.hr{
+  		border-bottom: 1px solid #394047;
+  		padding-bottom: 7px;
+  		display: block;
+  		margin-bottom: -16px;
+	}
+}

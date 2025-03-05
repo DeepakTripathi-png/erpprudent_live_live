@@ -1,0 +1,90 @@
+$( document ).ready(function() {
+  
+  $('#project_id').on('change', function() {
+    var project_id = $(this).val();
+    var base_url = $('#base_url').val();
+
+    if (project_id) {
+      $.ajax({
+        url: base_url + 'stock_report_list_by_project_id',
+        type: 'POST',
+        data: {
+          project_id: project_id
+        },
+       
+        success: function(response) {
+          console.log(response);
+          $('#stock_list tbody').html(response);
+        },
+       
+        error: function(xhr, status, error) {
+          console.error('AJAX Error: ' + status + error);
+        }
+      });
+    }
+  });
+
+  var download_title = 'Stock Report';
+  var recordsPerPage = 10;
+  var stock_list = $('#stock_list').DataTable({
+    "scrollX": true,
+    "dom": 'Bfrtip',
+    "lengthMenu": [
+      [10,25, 50, 75, 100, 125,150, -1],
+      [ '10 rows','25 rows', '50 rows', '75 rows',  '100 rows',  '125 rows',  '150 rows', 'Show all' ]
+    ],
+    "buttons": [
+      'pageLength',
+      {
+        "extend": 'copy',
+        "title": download_title,
+        "exportOptions": {
+          "columns": [0,1,2,3,4,5,6,7,8]
+        },
+        "footer": true
+      },
+      {
+        "extend": 'excel',
+        "title": download_title,
+        "exportOptions": {
+          "columns": [0,1,2,3,4,5,6,7,8]
+        },
+        "footer": true,
+      },
+      {
+        "extend": 'pdf',
+        "title": download_title,
+        "exportOptions": {
+          "columns": [0,1,2,3,4,5,6,7,8]
+        },
+        "footer": true
+      },
+      {
+        "extend": 'print',
+        "title": download_title,
+        "exportOptions": {
+          "columns": [0,1,2,3,4,5,6,7,8]
+        },
+        "footer": true
+      }
+    ],
+    "oLanguage": {
+      "sEmptyTable": "No Stock Data Found!"
+    },
+    "bDestroy" : true,
+    "bInfo" : false,
+    "ordering": true,
+    "searching":true,
+    "paging": true,
+    "iDisplayLength": 25,
+    "deferRender": true,
+    "responsive": false,
+    "processing": true,
+    "serverSide": false,
+    "order": [],
+
+
+  });
+
+
+});

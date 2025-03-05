@@ -1,0 +1,248 @@
+/* loader css */
+.main-loader-box .loader-div:before, .main-loader-box .loader-div:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 1em; /* Increase width */
+    
+        height: 1em; /* Increase height */
+    
+        border-radius: 0.5em; /* Adjust border-radius */
+    transform: translate(-50%, -50%);
+    }
+    .main-loader-box .loader-div:before {
+    animation: before 2s infinite;
+    }
+    .main-loader-box .loader-div:after {
+    animation: after 2s infinite;
+    }
+    
+    @keyframes before {
+      0% {
+    
+            width: 1em; /* Match size */
+    
+            box-shadow: 2em -1em rgba(225, 20, 98, 0.75), -2em 1em rgba(111, 202, 220, 0.75);
+    
+        }
+    
+        35% {
+    
+            width: 5em; /* Match size */
+    
+            box-shadow: 0 -1em rgba(225, 20, 98, 0.75), 0 1em rgba(111, 202, 220, 0.75);
+    
+        }
+    
+        70% {
+    
+            width: 1em; /* Match size */
+    
+            box-shadow: -2em -1em rgba(225, 20, 98, 0.75), 2em 1em rgba(111, 202, 220, 0.75);
+    
+        }
+    
+        100% {
+    
+            box-shadow: 2em -1em rgba(225, 20, 98, 0.75), -2em 1em rgba(111, 202, 220, 0.75);
+    
+        }
+    }
+    @keyframes after {
+      0% {
+    
+            height: 1em; /* Match size */
+    
+            box-shadow: 1em 2em rgba(61, 184, 143, 0.75), -1em -2em rgba(233, 169, 32, 0.75);
+    
+        }
+    
+        35% {
+    
+            height: 5em; /* Match size */
+    
+            box-shadow: 1em 0 rgba(61, 184, 143, 0.75), -1em 0 rgba(233, 169, 32, 0.75);
+    
+        }
+    
+        70% {
+    
+            height: 1em; /* Match size */
+    
+            box-shadow: 1em -2em rgba(61, 184, 143, 0.75), -1em 2em rgba(233, 169, 32, 0.75);
+    
+        }
+    
+        100% {
+    
+            box-shadow: 1em 2em rgba(61, 184, 143, 0.75), -1em -2em rgba(233, 169, 32, 0.75);
+    
+        }
+    }
+    
+    .main-loader-box .loader-div {
+       background: rgba(255, 255, 255, 0.7);
+       position: fixed;
+       bottom: 0;
+       left: 0;
+       right: 0;
+       top: 0;
+       z-index: 9998;
+    }
+    .loader-show {
+       overflow: hidden ;
+    }
+    
+    .menu_overlay{
+        position: fixed;
+        background: #f8fafb;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 0%;
+        opacity: 0;
+        visibility: hidden;
+        transition: all ease-in-out 0.5s;
+        -webkit-transition: all ease-in-out 0.5s;
+        transform: translate(0%, 92%) matrix(1, 0, 0, 1, 0, 0);
+        overflow: hidden;
+        z-index: 1000;
+        display: block;
+    }
+    .menu_overlay.open {
+    
+        opacity: 1;
+        visibility: visible;
+        height: calc(100vh - 64px);
+        transform: translate(0%, 0) matrix(1, 0, 0, 1, 0, 0);
+    }
+    #scrollable_content{
+        overflow-y: auto;
+        opacity: 1;
+        visibility: visible;
+        height: calc(100vh - 142px);
+        transform: translate(0%, 0) matrix(1, 0, 0, 1, 0, 0);
+    }
+    .menu_overlay .heading {
+        padding: 0;
+        border-bottom: 0;
+        background-size: cover !important;
+        
+        top: 70px;
+        width: auto !important;
+        right: 0;
+    
+    }
+    .menu_overlay .heading h3{
+            width: 1570.84px;
+        color: #000 !important;
+        margin-top: 30px;
+        font-size: 24px;
+        font-family: 'gilroysemibold';
+        padding-left: 40px !important;
+    }
+    .menu_overlay .sitemap-blocks .sitemap-items .span3 {
+        box-shadow: inherit;
+        transition: 0.25s;
+            background: #FFFFFF;
+        box-shadow: 0px 5px 10px #434A540D;
+        border-radius: 10px;
+            margin-right: 1%;
+        margin-left: 0;
+        border: 1px solid #e9d6d6;
+    }
+    .menu_overlay .sitemap-blocks {
+        margin: 35px 40px 40px 40px;
+        width: auto;
+    }
+    .menu_overlay .box .title{
+        background: transparent;
+        border: 0;
+    }
+    .menu_overlay .sitemap-items .box .title {
+        display: block;
+        width: auto;
+    }
+    .box .title {
+        border-color: #dadfea;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+    }
+    .box .title {
+        background-color: #fbfbfb;
+        background-image: none;
+        border-color: #d6d6d6;
+        border-radius: 0;
+    }
+    .sitemap-items .box:hover {
+        transform: translateY(-0.3em);
+    }
+    .box .title {
+        height: auto;
+        background: url(../../../images/patterns/2.png) repeat;
+        position: relative;
+        border: 1px solid #c4c4c4;
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        moz-box-shadow: 0 1px 0px rgba(255, 255, 255, 1);
+        webkit-box-shadow: 0 1px 0px rgba(255, 255, 255, 1);
+        box-shadow: 0 1px 0px rgba(255, 255, 255, 1);
+    }
+    .sitemap-items .box .title h4 {
+        font-size: 15px !important;
+        font-family: "gilroymedium" !important;
+        font-weight: normal;
+    }
+    .sitemap-items .box .title h4 {
+        color: #262626;
+        font-family: 'gilroysemibold' !important;
+        padding-top: 15px;
+        padding-left: 30px;
+        border-bottom: 1px solid #b5b3b326;
+        margin-bottom: 10px;
+        padding-bottom: 9px;
+        font-size: 17px !important;
+        text-transform: uppercase;
+    }
+    a.nav-active-link {
+        font-size: 16px !important;
+        text-transform: uppercase;
+    }
+    .sitemap-items .box ul.sitemap{
+            margin-left: 13px;
+    }
+    .sitemap-items .box ul.sitemap li {
+        padding-left: 12px;
+        position: relative;
+        margin-bottom: 4px;;
+    }
+    .sitemap-items .box ul.sitemap li:hover a{
+        color: blue !important;
+    }
+    .sitemap-items .box ul.sitemap li:hover{
+            background: #f1f1f9;
+    }
+    .sitemap-items li::marker {
+        unicode-bidi: isolate;
+        font-variant-numeric: tabular-nums;
+        text-transform: none;
+        text-indent: 0px !important;
+        text-align: start !important;
+        text-align-last: start !important;
+        content: "\ea65";
+        font-family: "tabler-icons" !important;
+        speak: none;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+    
+    }
+    /* hide all datable loader*/
+.dataTables_processing {
+    display: none !important;
+}

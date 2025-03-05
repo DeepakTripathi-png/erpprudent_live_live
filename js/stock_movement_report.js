@@ -1,0 +1,702 @@
+var allProjectList;
+
+$( document ).ready(function() {
+
+
+
+ 
+        getAllProject()
+  
+    var download_title ="Stock Movement"
+    var stockMovementlist = $('#stockMovementlist').DataTable({
+      "scrollX": true,
+      "dom": 'Bfrtip',
+      "lengthMenu": [
+        [10,25, 50, 75, 100, 125,150, -1],
+        [ '10 rows','25 rows', '50 rows', '75 rows',  '100 rows',  '125 rows',  '150 rows', 'Show all' ]
+      ],
+      "buttons": [
+        'pageLength',
+        {
+          "extend": 'copy',
+          "title": download_title,
+          "exportOptions": {
+            "columns": [0,1,2,3,4,5,6,7,8]
+          },
+          "footer": true
+        },
+        {
+          "extend": 'excel',
+          "title": download_title,
+          "exportOptions": {
+            "columns": [0,1,2,3,4,5,6,7,8]
+          },
+          "footer": true,
+        },
+        {
+          "extend": 'pdf',
+          "title": download_title,
+          "exportOptions": {
+            "columns": [0,1,2,3,4,5,6,7,8]
+          },
+          "footer": true
+        },
+        {
+          "extend": 'print',
+          "title": download_title,
+          "exportOptions": {
+            "columns": [0,1,2,3,4,5,6,7,8]
+          },
+          "footer": true
+        }
+      ],
+      "oLanguage": {
+        "sEmptyTable": "No Stock Movement Found!"
+      },
+      "bDestroy" : true,
+      "bInfo" : false,
+      "ordering": true,
+      "searching":true,
+      "paging": true,
+      "iDisplayLength": 25,
+      "deferRender": true,
+      "responsive": false,
+      "processing": true,
+      "serverSide": false,
+      "order": [],
+      "ajax": {
+        "url": base_url+"get_stock_movement_list_report?project_id="+$('#project_id').val(),
+        // "url": base_url+"get_stock_movement_list",
+        "type": "GET",
+        "data":{project_id:$('#project_id').val()}
+      },
+  
+    });
+  
+    // $("#form_project_id,#to_project_id").select2();
+  
+  $('#form_project_id').on('change', function() {
+    var project_id = $(this).val();
+    // var base_url = $('#base_url').val();
+
+    if (project_id) {
+      $.ajax({
+        url: 'get_stock_movement_list_by_project_id',
+        type: 'POST',
+        data: {
+          project_id: project_id
+        },
+       
+        success: function(response) {
+          response = JSON.parse(response); 
+        //   console.log(response.data);
+     
+          let htmlContent = '';
+
+          if (Array.isArray(response.data) && response.data.length > 0) {
+             
+              response.data.forEach(row => {
+                  htmlContent += `<tr>
+                      <td>${row[0]}</td>
+                      <td>${row[1]}</td>
+                      <td>${row[2]}</td>
+                      <td>${row[3]}</td>
+                      <td>${row[4]}</td>
+                      <td>${row[5]}</td>
+                      <td>${row[6]}</td>
+                      <td>${row[7]}</td>
+                      <td>${row[8]}</td>
+                  </tr>`;
+              });
+          } else {
+             
+              htmlContent = `<tr>
+                  <td colspan="9" style="text-align: center;">No data found</td>
+              </tr>`;
+          }
+  
+          $('#stockMovementlist tbody').html(htmlContent);
+        },
+       
+        error: function(xhr, status, error) {
+          console.error('AJAX Error: ' + status + error);
+        }
+      });
+    }
+  });
+
+
+  $('#to_project_id').on('change', function() {
+    var to_project_id = $(this).val();
+    var form_project_id = $('#form_project_id').val();
+
+    if (form_project_id != "" && to_project_id != "") {
+      $.ajax({
+        url: 'get_stock_movement_list_by_to_project_id',
+        type: 'POST',
+        data: {
+          to_project_id: to_project_id,
+          form_project_id:form_project_id
+        },
+       
+        success: function(response) {
+          response = JSON.parse(response); 
+        //   console.log(response.data);
+     
+          let htmlContent = '';
+
+          if (Array.isArray(response.data) && response.data.length > 0) {
+             
+              response.data.forEach(row => {
+                  htmlContent += `<tr>
+                      <td>${row[0]}</td>
+                      <td>${row[1]}</td>
+                      <td>${row[2]}</td>
+                      <td>${row[3]}</td>
+                      <td>${row[4]}</td>
+                      <td>${row[5]}</td>
+                      <td>${row[6]}</td>
+                      <td>${row[7]}</td>
+                      <td>${row[8]}</td>
+                  </tr>`;
+              });
+          } else {
+             
+              htmlContent = `<tr>
+                  <td colspan="9" style="text-align: center;">No data found</td>
+              </tr>`;
+          }
+  
+          $('#stockMovementlist tbody').html(htmlContent);
+        },
+       
+        error: function(xhr, status, error) {
+          console.error('AJAX Error: ' + status + error);
+        }
+      });
+    }else{
+        $(".alert-container").removeClass("hide");
+        $(".alert-container").html('<div class="alert modify alert-danger">Please Select Project</div>');
+                        setTimeout(function() {
+                            $(".alert-container").addClass("hide");
+                            $(".alert-container").html('');
+                            location.reload();
+                        }, 3000);
+    }
+  });
+  
+    $('#stockMovementlist tbody').on('click','.openview', function () {
+  
+      $(this).text(function(i, text){
+        return text === "CLOSE" ? "VIEW" : "CLOSE";
+      });
+  
+      var transaction_id = $(this).attr('data-id');
+  
+  
+      var project_id = $(this).attr('data-project_id');
+      var boq_code = $(this).attr('data-boq_code');
+      var transaction_type = $(this).attr('data-type');
+      var status_txt = $(this).attr('data-status');
+  
+      var filter = 'original';
+  
+      var tr = $(this).closest('tr');
+      var row = stockMovementlist.row(tr);
+      // console.log(table_bom);
+  
+      if (row.child.isShown()) {
+        row.child.hide();
+        tr.removeClass('shown');
+      }else{
+        var divwidth = $("#bomtranslist").width();
+        var divminwidth = divwidth - 20;
+        var filterhtml='';
+        var headtxt='';
+        download_title = 'BOM - Waiting for Approval';
+  
+        if(transaction_type == 'bom_upload'){
+          download_title = 'Waiting for Approval (BOM Upload)';
+        } else if (transaction_type == 'purchase_order') {
+          download_title = 'Purchase Order';
+        }
+  
+        var actionhtml='';
+        var actionhtmlfooter='';
+  
+        var html = '<div class="portlet-body form" id="displayed'+boq_code+'">'
+        +'<div class="displayFlx" style="margin-bottom: 15px;display:flex;">'
+        +filterhtml
+        +'<div class="col-md" id="calculatedfiler'+boq_code+'"></div>'
+        +'</div>'
+        +'<div id="originalpbomviewdiv'+boq_code+'"><div class="table-responsive">'
+        +'<table width="100%" id="originalpbomview'+boq_code+'" class="table table-striped table-bordered table-hover" style="text-align: left;">'
+        +'<thead style="background:#26a69a;color:#fff;font-weight:400;">'
+        +'<tr>'
+        +'<th scope="col" style="vertical-align: top;">Sr.no</th>'
+        +'<th scope="col" style="vertical-align: top;">BOM Sr. No</th>'
+        +'<th scope="col" style="vertical-align: top;">HNS Code</th>'
+        +'<th scope="col" style="vertical-align: top;">Item Name</th>'
+        +'<th scope="col" style="vertical-align: top;">Make</th>'
+        +'<th scope="col" style="vertical-align: top;">Model</th>'
+        +'<th scope="col" style="vertical-align: top;">Unit</th>'
+        +'<th scope="col" style="vertical-align: top;text-align:right;">Quantity</th>'
+        +'<th scope="col" style="vertical-align: top;text-align:right;">Rate Basic</th>'
+        +'<th scope="col" style="vertical-align: top;text-align:right;">GST (%)</th>'
+        +'<th scope="col" style="vertical-align: top;text-align:right;">Amount</th>'
+        +'<th scope="col" style="vertical-align: top;text-align:right;">Status</th>'
+        +actionhtml
+        +'</tr>'
+        +'</thead>'
+        +'<tbody></tbody>'
+        +'</table></div></div>';
+        row.child(html).show();
+        tr.addClass('shown');
+        $('.dt-hasChild').next().css('background','#f5f5f5');
+        $('.dt-hasChild').next().css('box-shadow','inset 0 0 0 9999px rgba(0, 0, 0, 0.075)');
+  
+        var table2 = $('#originalpbomview'+boq_code).DataTable({
+          "dom": 'Bfrtip',
+          scrollY: 400,
+          scrollX: true,
+          scroller: true,
+          "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            var currentPage = Math.floor(iDisplayIndexFull / recordsPerPage) + 1; // Calculate the current page
+            var indexOnPage = iDisplayIndexFull % recordsPerPage; // Calculate the index on the current page
+            var serialNumber = (currentPage - 1) * recordsPerPage + indexOnPage + 1;
+  
+            $("td:eq(0)", nRow).text(serialNumber); // Update the first cell content
+            aData[0] = serialNumber; // Update the underlying data
+          },
+          fixedHeader: {
+            header: true,
+            footer: true
+          },
+          "lengthMenu": [
+            [25, 50, 75, 100, 125,150, -1],
+            [ '25 rows', '50 rows', '75 rows',  '100 rows',  '125 rows',  '150 rows', 'Show all' ]
+          ],
+          "buttons": [
+            'pageLength',
+            {
+              "extend": 'copy',
+              "title": download_title,
+              "footer": true
+            },
+            {
+              "extend": 'excel',
+              "title": download_title,
+              "footer": true,
+              customize: function(xlsx) {
+                var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                $('row c[r^="C"]', sheet).each( function () {
+                  $(this).attr( 's', '55' );
+                });
+              },
+            },
+            {
+              "extend": 'pdf',
+              "title": download_title,
+              "footer": true
+            },
+            {
+              "extend": 'print',
+              "title": download_title,
+              "footer": true
+            }
+          ],
+  
+          "bAutoWidth": false,
+          "bDestroy" : true,
+          "paging": true,
+          "iDisplayLength": 25,
+          "deferRender": true,
+          "responsive": true,
+          "processing": true,
+          "serverSide": false,
+          "order": [[1, 'asc']],
+          "ajax": {
+            "url": base_url+"project_bom_trans_list_display",
+            "type": "POST",
+            "data":{project_id:project_id,filter:filter,transaction_id:transaction_id,transaction_type:transaction_type,boq_code:boq_code,status_txt:status_txt}
+          },
+  
+          "columnDefs": [{
+            "targets": [0,3,4,5],
+            "orderable": false
+          },
+          {
+            "targets": [6,7,8,9],
+            "orderable": false,
+            "className": "text-right"
+          }],
+        });
+        new $.fn.dataTable.FixedHeader( table2 );
+      }
+    });
+
+
+    $(document).on("click",".openMoreDetails",function(){
+        let that = $(this);
+        var sm_id = $(this).data("sm-id");
+        $.ajax({
+              type: "POST",
+              url: "sm_item_list_display",
+              data: {sm_id:sm_id},
+              success: function (response) {
+                  var responseObject = JSON.parse(response);
+                  $(that).parents("tr").after(responseObject.html);
+                  $(that).parents("tr").next(".extented_row").find(".table-responsive table").DataTable({
+                    "dom": 'Bfrtip',
+          scrollY: 400,
+          scrollX: true,
+          scroller: true,
+          "lengthMenu": [
+            [25, 50, 75, 100, 125,150, -1],
+            [ '25 rows', '50 rows', '75 rows',  '100 rows',  '125 rows',  '150 rows', 'Show all' ]
+          ],
+          "buttons": [
+            'pageLength',
+            {
+              "extend": 'copy',
+              "title": download_title,
+              "footer": true
+            },
+            {
+              "extend": 'excel',
+              "title": download_title,
+              "footer": true,
+              customize: function(xlsx) {
+                var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                $('row c[r^="C"]', sheet).each( function () {
+                  $(this).attr( 's', '55' );
+                });
+              },
+            },
+            {
+              "extend": 'pdf',
+              "title": download_title,
+              "footer": true
+            },
+            {
+              "extend": 'print',
+              "title": download_title,
+              "footer": true
+            }
+          ],
+  
+        });
+                  $(that).html("Close").removeClass("openMoreDetails").addClass("closeMoreDetails")
+              },
+              error: function (error) {
+                  console.error("Error:", error);
+              },
+          });
+    })
+    $(document).on("click",".closeMoreDetails",function(){
+        console.log("ok")
+         $(this).parents("tr").next(".extented_row").remove();
+         $(this).addClass("openMoreDetails").removeClass("closeMoreDetails").html("View")
+    });
+
+    $('#form_project_id').on("change",function() {
+      var form_project_id = $(this).val();
+      $.ajax({
+        url : "po_list_by_project_id",
+        type:'POST',
+        data:{project_id:form_project_id},
+        success:function(response)
+        {
+          var response = JSON.parse(response);
+          $('#project_po').html(response.option).trigger("update");
+           
+          var to_project_list_opt = "<option value=''>Select Project</option>";
+          for (var i = 0; i < allProjectList.length; i++) {
+
+            if(allProjectList[i].id != form_project_id){
+              to_project_list_opt += "<option value='"+allProjectList[i]['id']+"'>"+allProjectList[i]['text']+"</option>";
+            }
+          }
+          $("#to_project_id").html(to_project_list_opt).trigger("update");
+        }
+      });
+    });
+
+   
+
+
+  
+    
+  
+
+ 
+    $.validator.addMethod("notDefault", function(value, element) {
+        return value !== "Select Project"; 
+    }, "Please select a valid project.");
+    
+    $.validator.addMethod("notSameAsFrom", function(value, element) {
+        return value !== $('#form_project_id').val(); 
+    }, "The target project must be different from the source project.");
+    
+    $("#save_stock_movement_form").validate({
+        rules: {
+            form_project_id: {
+                required: true,
+                notDefault: true
+            },
+            to_project_id: {
+                required: true,
+                notDefault: true,
+                notSameAsFrom: true 
+            },
+        },
+        messages: {
+            form_project_id: {
+                required: "Please select a project.",
+                notDefault: "Please select a project."
+            },
+            to_project_id: {
+                required: "Please select a target project.",
+                notDefault: "Please select a target project.",
+                notSameAsFrom: "The target project cannot be the same as the source project."
+            },
+        },
+        onfocusout: function(element) {
+            $(element).valid(); // Validate on losing focus
+        },
+        errorPlacement: function(error, element) {
+            error.insertAfter(element);
+        },
+        submitHandler: function(form) {
+            var formData = new FormData(form);
+            $.ajax({
+                url: "save_stock_movement_data",
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    var res = JSON.parse(response);
+                    $(".alert-container").removeClass("hide");
+                    if (res.success == 1) {
+                        $(".alert-container").html('<div class="alert modify alert-success">' + res.messages + '</div>');
+                        setTimeout(function() {
+                            $(".alert-container").addClass("hide");
+                            $(".alert-container").html('');
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        $(".alert-container").html('<div class="alert modify alert-danger">' + res.messages + '</div>');
+                        setTimeout(function() {
+                            $(".alert-container").addClass("hide");
+                        }, 3000);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Error: ' + textStatus, errorThrown);
+                }
+            });
+        }
+    });
+    
+    //  Trigger validation when #to_project_id is changed
+    $("#to_project_id").change(function() {
+        $(this).valid();
+    });
+    
+
+
+
+
+$(document).on('change','.statusselectbom' , function(e){
+  var this1 = $(this);
+  bootbox.confirm("Are you sure?", function(result) 
+  {
+      if(result)
+      {
+          var sm_id = this1.attr('data-sm-id');
+          var url = this1.attr('rev');   
+          
+                  
+          var status = this1.val(); 
+          
+          $.ajax({
+              url : completeURL(url),
+              type:'POST',
+              dataType:'json',
+              data:{sm_id:sm_id,status:status},
+              success:function(data)
+              {
+                  bootbox.alert(data.msg, function() {
+                     
+                  });
+                  setTimeout(function(){
+                    location.reload();                          
+                  },1500);
+                  
+                  
+              }
+          });
+      }
+  }); 
+});
+
+
+$(document).on("click", ".download-stock-movement", function() {
+  var sm_id = $(this).attr("data-sm-id");
+
+  $.ajax({
+    url: base_url + 'get_stock_movement_data_for_excel',
+    type: 'POST',
+    dataType: 'json',
+    data: { sm_id: sm_id },
+    success: function(response) {
+    
+        if (!response || !response.data || !response.data.data || !Array.isArray(response.data.data)) {
+            console.error('Invalid response format:', response);
+            return;
+        }
+
+        var data = response.data.data; 
+        var form_project = data[0].form_project;
+        var to_project = data[0].to_project;
+        var bom_data_array = [];
+        var count = 1;
+
+        data.forEach(function(item) {
+            var row = [
+                count,
+                item.bom_code || 'N/A',
+                item.item_description || 'N/A',
+                item.hsn_code || 'N/A',
+                item.make || 'N/A',
+                item.model || 'N/A',
+                item.unit || 'N/A',
+                item.qty || 0
+            ];
+            bom_data_array.push(row);
+            count++;
+        });
+
+        
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sheet1');
+
+     
+        // var ws_data = [
+        //     ['Stock Movement'],
+        //     [""],
+        //     [""],
+        //     ["", "From Project", form_project || 'N/A', "", "", "", "Date", (data[0].created_on ? data[0].created_on.split(' ')[0] : 'N/A')],
+        //     ["", "To Project", to_project || 'N/A', "", "", "", ""],
+        //     [""], // Empty row
+        //     ["Sr. No.", "Bom Code", "Item Description", "HSN Code", "Make", "Model", "Unit", "Qty"]
+        // ];
+        
+         var ws_data = [
+          ['Stock Movement'],
+          [""],
+          [""],
+          ["", "From Project", form_project || 'N/A', "PO Number", data[0].po_number,"VDC Number", data[0].vdc_number],
+          ["", "Bom Code", data[0].bom_code, "To Project", to_project || 'N/A', "Date", (data[0].created_on ? data[0].created_on.split(' ')[0] : 'N/A')],
+          [""], // Empty row
+          ["Sr. No.", "Bom Code", "Item Description", "HSN Code", "Make", "Model", "Unit", "Qty"]
+      ];
+
+        // Append BOM data to worksheet
+        ws_data = ws_data.concat(bom_data_array);
+        ws_data.forEach(row => worksheet.addRow(row));
+
+        // Set font and styles
+        const boldFont = { bold: true };
+        const centerAlignment = { vertical: 'middle', horizontal: 'center' };
+        const borderStyle = {
+            top: { style: 'thin', color: { argb: '000000' } },
+            left: { style: 'thin', color: { argb: '000000' } },
+            bottom: { style: 'thin', color: { argb: '000000' } },
+            right: { style: 'thin', color: { argb: '000000' } }
+        };
+
+        // Apply font and alignment to headers
+        worksheet.getRow(7).font = boldFont;
+        worksheet.getRow(7).alignment = centerAlignment;
+        for (let col = 1; col <= 8; col++) {
+          worksheet.getCell(7, col).border = borderStyle; 
+      }
+
+        worksheet.columns = [
+            { width: 10 }, // Sr. No.
+            { width: 20 }, // Bom Code
+            { width: 30 }, // Item Description
+            { width: 15 }, // HSN Code
+            { width: 20 }, // Make
+            { width: 20 }, // Model
+            { width: 10 }, // Unit
+            { width: 10 }  // Qty
+        ];
+
+        // Merge and center title cells
+        worksheet.mergeCells(1, 1, 2, 8); 
+    
+
+        worksheet.getCell(1, 1).alignment = centerAlignment;
+        worksheet.getCell(1, 1).font = { size: 20, bold: true };
+
+        worksheet.getCell(4, 8).font = boldFont; // Date
+        worksheet.getCell(4, 3).font = boldFont; // Project Names
+
+        const startRow = 8; // Assuming bom_data_array starts at row 8
+        const startCol = 1; // Starting from column 1
+
+        bom_data_array.forEach((row, rowIndex) => {
+            row.forEach((_, colIndex) => {
+                const cell = worksheet.getCell(startRow + rowIndex, startCol + colIndex);
+                cell.border = borderStyle; 
+            });
+        });
+
+        // Export workbook
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, 'stock-movement.xlsx');
+        });
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+        console.error('Error fetching data:', textStatus, errorThrown);
+    }
+});
+
+
+
+
+
+
+});
+
+
+  });
+ 
+  
+
+  function getAllProject(){
+    $.ajax({
+    url : "get_all_project_list",
+    type:'POST',
+    data:{},
+    success:function(response)
+    {
+        response = JSON.parse(response);
+        allProjectList = response.users;
+        var project_opt = "<option>Select Project</option>";
+        var projects = response.users;
+        for(let i=0;i<projects.length;i++){
+            project_opt += `<option value='${projects[i].id}'>${projects[i].text}</option>`;
+        }
+        $(".allProjectDropDown").html(project_opt).select2();
+        $("#to_project_id").html(project_opt).select2();
+       
+        
+   
+    }
+  });
+}
