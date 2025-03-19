@@ -698,7 +698,9 @@ public function delivery_challan_note($delivery_challan_data,$delivery_challan_i
 	$objWriter = PHPExcel_IOFactory::createWriter($CI->excel, 'Excel5');
 	$objWriter->save('php://output'); 
 }
-public function invoice_format($tax_invc_data,$tax_invc_items_data,$type){
+public function invoice_format($tax_invc_data,$tax_invc_items_data,$type,$auto_round_value){
+     
+
     if($type == 'tax'){
     $excelname='TAX INVOICE FORMAT 2';
     }else{
@@ -1062,7 +1064,11 @@ public function invoice_format($tax_invc_data,$tax_invc_items_data,$type){
 	    }elseif($j == $i+3 && $final_gst_amount > 0){
     	$CI->excel->getActiveSheet()->setCellValue('K'.$j, '');
     	$CI->excel->getActiveSheet()->getStyle('K'.$j)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
-	    }elseif($j == $i+5){
+	    }elseif($j == $i+4){
+			$CI->excel->getActiveSheet()->setCellValue('K'.$j, 'Additial Amount');
+			$CI->excel->getActiveSheet()->getStyle('K'.$j)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
+			}
+		elseif($j == $i+5){
     	$CI->excel->getActiveSheet()->setCellValue('K'.$j, 'Total amount of this invoice');
     	$CI->excel->getActiveSheet()->getStyle('K'.$j)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
 	    }else{
@@ -1087,8 +1093,11 @@ public function invoice_format($tax_invc_data,$tax_invc_items_data,$type){
     	$CI->excel->getActiveSheet()->setCellValue('L'.$j, $final_gst_amount);
     	}elseif($j == $i+3 && $final_gst_amount > 0){
     	$CI->excel->getActiveSheet()->setCellValue('L'.$j, '');
-    	}elseif($j == $i+5){
-    	$CI->excel->getActiveSheet()->setCellValue('L'.$j, $final_amount);
+    	}elseif($j == $i+4){
+			$CI->excel->getActiveSheet()->setCellValue('L'.$j, $auto_round_value);
+			}
+		elseif($j == $i+5){
+    	$CI->excel->getActiveSheet()->setCellValue('L'.$j, $final_amount+$auto_round_value);
     	}else{
     	$CI->excel->getActiveSheet()->setCellValue('L'.$j, '');
     	}
@@ -1232,7 +1241,7 @@ public function invoice_format($tax_invc_data,$tax_invc_items_data,$type){
 	$objWriter = PHPExcel_IOFactory::createWriter($CI->excel, 'Excel5');
 	$objWriter->save('php://output'); 
     }
-public function invoice_format_1($tax_invc_data,$tax_invc_items_data,$tax_invc_items_hsn_data,$type){
+public function invoice_format_1($tax_invc_data,$tax_invc_items_data,$tax_invc_items_hsn_data,$type, $auto_round_value){
    
     if($type == 'tax'){
     $excelname='TAX INVOICE FORMAT 2';
@@ -1610,7 +1619,11 @@ public function invoice_format_1($tax_invc_data,$tax_invc_items_data,$tax_invc_i
 	    }elseif($j == $i+3 && $final_gst_amount > 0){
     	$CI->excel->getActiveSheet()->setCellValue('K'.$j, '');
     	$CI->excel->getActiveSheet()->getStyle('K'.$j)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
-	    }elseif($j == $i+5){
+	    }elseif($j == $i+4){
+			$CI->excel->getActiveSheet()->setCellValue('K'.$j, 'Additial Amount');
+			$CI->excel->getActiveSheet()->getStyle('K'.$j)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
+			}
+		elseif($j == $i+5){
     	$CI->excel->getActiveSheet()->setCellValue('K'.$j, 'Total amount of this invoice');
     	$CI->excel->getActiveSheet()->getStyle('K'.$j)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT)->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
 	    }else{
@@ -1635,8 +1648,11 @@ public function invoice_format_1($tax_invc_data,$tax_invc_items_data,$tax_invc_i
     	$CI->excel->getActiveSheet()->setCellValue('L'.$j, $final_gst_amount);
     	}elseif($j == $i+3 && $final_gst_amount > 0){
     	$CI->excel->getActiveSheet()->setCellValue('L'.$j, '');
-    	}elseif($j == $i+5){
-    	$CI->excel->getActiveSheet()->setCellValue('L'.$j, $final_amount);
+    	}elseif($j == $i+4){
+			$CI->excel->getActiveSheet()->setCellValue('L'.$j, $auto_round_value);
+			}
+		elseif($j == $i+5){
+    	$CI->excel->getActiveSheet()->setCellValue('L'.$j, $final_amount+ $auto_round_value);
     	}else{
     	$CI->excel->getActiveSheet()->setCellValue('L'.$j, '');
     	}

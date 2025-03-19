@@ -6464,7 +6464,12 @@ public function edit_proforma_invoice(){
         $tax_invc_data = $this->admin_model->get_invoice_no($tax_invc_id);
         $tax_invc_items_data = $this->common_model->selectDetailsWhereAllDY('tbl_tax_invc_items', 'tax_invc_id',$tax_invc_id);
         $tax_invc_items_hsn_data = $this->admin_model->get_invoice_hsn_data('tbl_tax_invc_items', $tax_invc_id);
-        $this->excel->invoice_format_1($tax_invc_data,$tax_invc_items_data,$tax_invc_items_hsn_data,$type); 
+        
+        $tax_invc = $this->common_model->selectDetailsWhr('tbl_tax_invc','tax_invc_id',$tax_invc_id);
+        $performa_invc = $this->common_model->selectDetailsWhr('tbl_proforma_invc','proforma_id',$tax_invc->convertid);
+        $auto_round_value= sprintf('%0.2f', $performa_invc->auto_round_value);
+
+        $this->excel->invoice_format_1($tax_invc_data,$tax_invc_items_data,$tax_invc_items_hsn_data,$type,$auto_round_value); 
 	}
 	public function download_tax_invoice_format_2()    
     {
@@ -6475,7 +6480,11 @@ public function edit_proforma_invoice(){
         }
         $tax_invc_data = $this->admin_model->get_invoice_no($tax_invc_id);
         $tax_invc_items_data = $this->common_model->selectDetailsWhereAllDY('tbl_tax_invc_items', 'tax_invc_id',$tax_invc_id);
-        $this->excel->invoice_format($tax_invc_data,$tax_invc_items_data,$type); 
+        $tax_invc = $this->common_model->selectDetailsWhr('tbl_tax_invc','tax_invc_id',$tax_invc_id);
+        $performa_invc = $this->common_model->selectDetailsWhr('tbl_proforma_invc','proforma_id',$tax_invc->convertid);
+        $auto_round_value= sprintf('%0.2f', $performa_invc->auto_round_value);
+
+        $this->excel->invoice_format($tax_invc_data,$tax_invc_items_data,$type,$auto_round_value); 
 	}
 	public function download_proforma_invoice_format_2()    
     {
@@ -6489,7 +6498,10 @@ public function edit_proforma_invoice(){
         }
         $proforma_invc_data = $this->admin_model->get_proforma_invoice_details($proforma_id);
         $proforma_invc_items_data = $this->common_model->selectDetailsWhereAllDY('tbl_proforma_invc_items', 'proforma_id',$proforma_id);
-        $this->excel->invoice_format($proforma_invc_data,$proforma_invc_items_data,$type); 
+
+        $auto_round_value= sprintf('%0.2f', $proforma_invc_data->auto_round_value);
+
+        $this->excel->invoice_format($proforma_invc_data,$proforma_invc_items_data,$type,$auto_round_value); 
 	}
 	public function download_proforma_invoice_format_1()    
     {
@@ -6504,7 +6516,8 @@ public function edit_proforma_invoice(){
         $proforma_invc_data = $this->admin_model->get_proforma_invoice_details($proforma_id);
         $proforma_invc_items_data = $this->common_model->selectDetailsWhereAllDY('tbl_proforma_invc_items', 'proforma_id',$proforma_id);
         $proforma_invc_items_hsn_data = $this->admin_model->get_invoice_hsn_data('tbl_proforma_invc_items', $proforma_id);
-        $this->excel->invoice_format_1($proforma_invc_data,$proforma_invc_items_data,$proforma_invc_items_hsn_data,$type); 
+        $auto_round_value= sprintf('%0.2f', $proforma_invc_data->auto_round_value);
+        $this->excel->invoice_format_1($proforma_invc_data,$proforma_invc_items_data,$proforma_invc_items_hsn_data,$type,$auto_round_value); 
 	}
 	public function download_delivery_challan_note()    
     {
@@ -14923,30 +14936,78 @@ public function edit_proforma_invoice(){
                                 if(isset($save_dep_array) && !empty($save_dep_array)){
                                     $this->common_model->SaveMultiData('tbl_any_o_deposit',$save_dep_array);
                                 }
-                                $tax_deduction_desc = $this->input->post('tax_deduction_desc');
-                                if(isset($tax_deduction_desc) && !empty($tax_deduction_desc)){
-                                $tax_deduction_desc = $tax_deduction_desc;
-                                }else{
-                                $tax_deduction_desc = '';
+
+                                
+                                // $tax_deduction_desc = $this->input->post('tax_deduction_desc');
+
+                              
+                                
+                                
+                                // if(isset($tax_deduction_desc) && !empty($tax_deduction_desc) && strlen($tax_deduction_desc) > 0){
+                                // $tax_deduction_desc = $tax_deduction_desc;
+                                // }else{
+                                // $tax_deduction_desc ='NA';
+                                // }
+
+                                // $tax_deduction_amt = $this->input->post('tax_deduction_amt'); 
+
+                               
+
+                                // if(isset($tax_deduction_amt) && !empty($tax_deduction_amt) && $tax_deduction_amt > 0){
+                                // $tax_deduction_amt = $tax_deduction_amt;
+                                // }else{
+                                // $tax_deduction_amt = 0;
+                                // }
+
+                            
+
+                                // if(isset($tax_deduction_desc) && !empty($tax_deduction_desc) && isset($tax_deduction_amt)){
+                                //     for($i=0;$i<count($tax_deduction_desc);$i++){
+                                //         if(isset($tax_deduction_desc[$i]) && !empty($tax_deduction_desc[$i])) { $tax_deduction_desc_s = $tax_deduction_desc[$i]; }else { $tax_deduction_desc_s = ''; }
+                                //         if(isset($tax_deduction_amt[$i]) && !empty($tax_deduction_amt[$i])) { $tax_deduction_amt_s = $tax_deduction_amt[$i]; }else { $tax_deduction_amt_s = 0; } 
+                                //         if(isset($tax_deduction_desc_s) && !empty($tax_deduction_desc_s) && isset($tax_deduction_amt_s)){
+                                //             $save_ded_data[] = array('pay_receipt_id' =>  $pay_receipt_id,'tax_deduction_desc' => $tax_deduction_desc_s,'tax_deduction_amt' => $tax_deduction_amt_s);
+                                //         }
+                                //     }    
+                                // }
+                              
+                                // if(isset($save_ded_data) && !empty($save_ded_data)){
+                                //     $this->common_model->SaveMultiData('tbl_any_o_tax',$save_ded_data);
+                                // }
+
+
+                                $tax_deduction_desc = $this->input->post('tax_deduction_desc') ?? [];
+                                $tax_deduction_amt = $this->input->post('tax_deduction_amt') ?? [];
+
+                                // Ensure both are arrays
+                                $tax_deduction_desc = is_array($tax_deduction_desc) ? $tax_deduction_desc : [$tax_deduction_desc];
+                                $tax_deduction_amt = is_array($tax_deduction_amt) ? $tax_deduction_amt : [$tax_deduction_amt];
+
+                                $save_ded_data = [];
+
+                            
+
+                                foreach ($tax_deduction_amt as $i => $amt) {
+                                    $desc = $tax_deduction_desc[$i] ?? 'NA';  // Default 'NA' if description is missing
+                                    $amt = (!empty($amt) && $amt > 0) ? $amt : 0; // Ensure amount is numeric and positive
+
+                                    // Store data even if only the amount is present
+                                    $save_ded_data[] = [
+                                        'pay_receipt_id'      => $pay_receipt_id,
+                                        'tax_deduction_desc'  => $desc,
+                                        'tax_deduction_amt'   => $amt
+                                    ];
                                 }
-                                $tax_deduction_amt = $this->input->post('tax_deduction_amt'); 
-                                if(isset($tax_deduction_amt) && !empty($tax_deduction_amt) && $tax_deduction_amt > 0){
-                                $tax_deduction_amt = $tax_deduction_amt;
-                                }else{
-                                $tax_deduction_amt = 0;
+
+                                // Save data if available
+                                if (!empty($save_ded_data)) {
+                                    $this->common_model->SaveMultiData('tbl_any_o_tax', $save_ded_data);
                                 }
-                                if(isset($tax_deduction_desc) && !empty($tax_deduction_desc) && isset($tax_deduction_amt)){
-                                    for($i=0;$i<count($tax_deduction_desc);$i++){
-                                        if(isset($tax_deduction_desc[$i]) && !empty($tax_deduction_desc[$i])) { $tax_deduction_desc_s = $tax_deduction_desc[$i]; }else { $tax_deduction_desc_s = ''; }
-                                        if(isset($tax_deduction_amt[$i]) && !empty($tax_deduction_amt[$i])) { $tax_deduction_amt_s = $tax_deduction_amt[$i]; }else { $tax_deduction_amt_s = 0; } 
-                                        if(isset($tax_deduction_desc_s) && !empty($tax_deduction_desc_s) && isset($tax_deduction_amt_s)){
-                                            $save_ded_data[] = array('pay_receipt_id' =>  $pay_receipt_id,'tax_deduction_desc' => $tax_deduction_desc_s,'tax_deduction_amt' => $tax_deduction_amt_s);
-                                        }
-                                    }    
-                                }
-                                if(isset($save_ded_data) && !empty($save_ded_data)){
-                                    $this->common_model->SaveMultiData('tbl_any_o_tax',$save_ded_data);
-                                }
+
+
+
+
+
                                 $withheld_desc = $this->input->post('withheld_desc');  
                                 if(isset($withheld_desc) && !empty($withheld_desc)){
                                 $withheld_desc = $withheld_desc;
@@ -14971,6 +15032,8 @@ public function edit_proforma_invoice(){
                                 if(isset($held_desk) && !empty($held_desk)){
                                     $this->common_model->SaveMultiData('tbl_withheld',$held_desk);
                                 }
+
+                                
                                 $other_cess_desc = $this->input->post('other_cess_desc');   
                                 if(isset($other_cess_desc) && !empty($other_cess_desc)){
                                 $other_cess_desc = $other_cess_desc;
@@ -14995,30 +15058,60 @@ public function edit_proforma_invoice(){
                                 if(isset($cess_desk) && !empty($cess_desk)){
                                     $this->common_model->SaveMultiData('tbl_any_o_cess',$cess_desk);
                                 }
-                                $deduction_desc = $this->input->post('deduction_desc');         
-                                if(isset($deduction_desc) && !empty($deduction_desc)){
-                                $deduction_desc = $deduction_desc;
-                                }else{
-                                $deduction_desc = '';
-                                }
-                                $deduction_amt = $this->input->post('deduction_amt'); 
-                                if(isset($deduction_amt) && !empty($deduction_amt) && $deduction_amt > 0){
-                                $deduction_amt = $deduction_amt;
-                                }else{
-                                $deduction_amt = 0;
-                                }
-                                if(isset($deduction_desc) && !empty($deduction_desc) && isset($deduction_amt)){
-                                    for($i=0;$i<count($deduction_desc);$i++){
-                                        if(isset($deduction_desc[$i]) && !empty($deduction_desc[$i])) { $deduction_desc_s = $deduction_desc[$i]; }else { $deduction_desc_s = ''; }
-                                        if(isset($deduction_amt[$i]) && !empty($deduction_amt[$i])) { $deduction_amt_s = $deduction_amt[$i]; }else { $deduction_amt_s = 0; } 
-                                        if(isset($deduction_desc_s) && !empty($deduction_desc_s) && isset($deduction_desc_s)){
-                                            $any_dedu[] = array('pay_receipt_id' =>  $pay_receipt_id,'deduction_desc' => $deduction_desc_s,'deduction_amt' => $deduction_amt_s);
-                                        }
-                                    }    
-                                }
-                                if(isset($any_dedu) && !empty($any_dedu)){
-                                    $this->common_model->SaveMultiData('tbl_any_o_deduction',$any_dedu);
-                                }
+
+                                // $deduction_desc = $this->input->post('deduction_desc');         
+                                // if(isset($deduction_desc) && !empty($deduction_desc)){
+                                // $deduction_desc = $deduction_desc;
+                                // }else{
+                                // $deduction_desc = '';
+                                // }
+                                // $deduction_amt = $this->input->post('deduction_amt'); 
+                                // if(isset($deduction_amt) && !empty($deduction_amt) && $deduction_amt > 0){
+                                // $deduction_amt = $deduction_amt;
+                                // }else{
+                                // $deduction_amt = 0;
+                                // }
+                                // if(isset($deduction_desc) && !empty($deduction_desc) && isset($deduction_amt)){
+                                //     for($i=0;$i<count($deduction_desc);$i++){
+                                //         if(isset($deduction_desc[$i]) && !empty($deduction_desc[$i])) { $deduction_desc_s = $deduction_desc[$i]; }else { $deduction_desc_s = ''; }
+                                //         if(isset($deduction_amt[$i]) && !empty($deduction_amt[$i])) { $deduction_amt_s = $deduction_amt[$i]; }else { $deduction_amt_s = 0; } 
+                                //         if(isset($deduction_desc_s) && !empty($deduction_desc_s) && isset($deduction_desc_s)){
+                                //             $any_dedu[] = array('pay_receipt_id' =>  $pay_receipt_id,'deduction_desc' => $deduction_desc_s,'deduction_amt' => $deduction_amt_s);
+                                //         }
+                                //     }    
+                                // }
+                                // if(isset($any_dedu) && !empty($any_dedu)){
+                                //     $this->common_model->SaveMultiData('tbl_any_o_deduction',$any_dedu);
+                                // }
+
+
+                                    $deduction_desc = $this->input->post('deduction_desc') ?? [];
+                                    $deduction_amt = $this->input->post('deduction_amt') ?? [];
+
+                                    // Ensure both are arrays
+                                    $deduction_desc = is_array($deduction_desc) ? $deduction_desc : [$deduction_desc];
+                                    $deduction_amt = is_array($deduction_amt) ? $deduction_amt : [$deduction_amt];
+
+                                    $any_dedu = [];
+
+                                    foreach ($deduction_amt as $i => $amt) {
+                                        $desc = !empty($deduction_desc[$i]) ? $deduction_desc[$i] : 'NA';  // Default to 'NA' if missing
+                                        $amt = (!empty($amt) && $amt > 0) ? $amt : 0; // Ensure amount is numeric and positive
+
+                                        // Store data even if only the amount is present
+                                        $any_dedu[] = [
+                                            'pay_receipt_id'  => $pay_receipt_id,
+                                            'deduction_desc'  => $desc,
+                                            'deduction_amt'   => $amt
+                                        ];
+                                    }
+
+                                    // Save data if available
+                                    if (!empty($any_dedu)) {
+                                        $this->common_model->SaveMultiData('tbl_any_o_deduction', $any_dedu);
+                                    }
+
+
                                 $this->json->jsonReturn(array(
                                     'valid'=>TRUE,
                                     'msg'=>'<div class="alert modify alert-success">Payment Receipt Details Saved Successfully!</div>',

@@ -3562,7 +3562,8 @@ $this->updateBOQInstallStock($update_stock_arr,$project_id);
         }
     }
     public function get_invoice_other_tax_deduction($tax_incv_id)
-    {
+    { 
+
         $query = $this->db->query(
             "SELECT IFNULL(SUM(ttx.`tax_deduction_amt`),0) as total_amount
           FROM `tbl_any_o_tax` ttx INNER JOIN tbl_payment_receipt tpr ON tpr.id = ttx.pay_receipt_id
@@ -3938,6 +3939,7 @@ $this->updateBOQInstallStock($update_stock_arr,$project_id);
             $this->db->close();
         }
     }
+
     public function get_proforma_boq_item_details($project_id, $boq_code)
     {
         $queryi = $this->db->query(
@@ -3957,6 +3959,7 @@ $this->updateBOQInstallStock($update_stock_arr,$project_id);
         }
         $this->db->close();
     }
+    
     public function get_tax_boq_item_details($project_id, $boq_code)
     {
         $queryi = $this->db->query(
@@ -7501,6 +7504,8 @@ $this->updateBOQInstallStock($update_stock_arr,$project_id);
             $this->db->where('po.po_number', $po_number);
         }
         $query = $this->db->get();
+        
+
         return $query->result_array();
     }
     public function get_vdc_data_by_project_id($project_id = 0, $po_number = '')
@@ -8282,6 +8287,24 @@ public function get_payout_selection_data_list() {
     $query = $this->db->get();
     return $query->result_array();
 }
+
+
+
+public function get_payout_selection_data_aproved_list() {
+    $this->db->select('ps.*, ps.status as ps_status, p.*, pi.*, pr.bp_code');
+    $this->db->from('tbl_payout_selection as ps');
+    $this->db->join('tbl_payout as p', 'p.payout_id = ps.payout_ids', 'left'); 
+    $this->db->join('tbl_payout_item as pi', 'pi.payout_id = ps.payout_ids', 'left');
+    $this->db->join('tbl_projects as pr', 'p.project_id = pr.project_id', 'left');
+    $this->db->where('p.status', 'Approved');
+    $this->db->where('ps.status', 'Approved');
+    
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+
+
 public function get_payout_selection_data_excel($payout_id ='') {
     $this->db->select('ps.*, ps.status as ps_status, p.*, pi.*, pr.bp_code');
     $this->db->from('tbl_payout_selection as ps');
@@ -8353,6 +8376,92 @@ public function get_pending_payout_data($po_number = "") {
     $query = $this->db->get();
     return $query->result_array();
 }
+
+
+
+public function get_payout_data_by_grn_number($grnNumber = "")
+{
+    if (!empty($grnNumber)) {
+        $this->db->select('*');
+        $this->db->from('tbl_payout_item');
+        $this->db->where('grn_number', $grnNumber);
+        $query = $this->db->get();
+        return $query->result_array();
+    } else {
+        return [];
+    }
+}
+
+
+
+
+public function get_bank_payment_status_data_by_po_number($po_number = "")
+{
+        if (empty($po_number)) {
+            return false; 
+        }
+
+       
+
+        // Get all payout IDs linked to the given PO number
+        $payouts = $this->db->select('payout_id')
+            ->from('tbl_payout')
+            ->where('po_number', $po_number)
+            ->get()
+            ->result_array();
+
+    
+
+        if (empty($payouts)) {
+            return true; // No existing payouts, allow new payout
+        }
+
+    
+
+        // Convert payout_id array to simple array
+        $payout_ids = array_column($payouts, 'payout_id');
+
+
+        $this->db->where_in('payout_ids', $payout_ids);
+        $existsInPayoutSelection = $this->db->count_all_results('tbl_payout_selection');
+
+        if ($existsInPayoutSelection == 0) {
+            return true; // No payouts exist in tbl_payout_selection, allow new payout
+        }
+
+
+    
+
+        // Check if any payouts in tbl_payout_selection are NOT approved
+        $this->db->where_in('payout_ids', $payout_ids);
+        $this->db->where('status !=', 'Approved');
+        $notApproved = $this->db->count_all_results('tbl_payout_selection');
+
+        
+      
+        
+
+        if ($notApproved > 0) {
+            return false; // A payout is not approved, so new payout is not allowed
+        }
+
+        // Check if any approved payouts have NULL UTR numbers
+        $this->db->where_in('payout_ids', $payout_ids);
+        $this->db->where('status', 'Approved');
+        $this->db->where('utr_number IS NULL', null, false);
+        $approvedWithoutUTR = $this->db->count_all_results('tbl_payout_selection');
+
+        if ($approvedWithoutUTR > 0) {
+            return false; // An approved payout exists without UTR, so new payout is not allowed
+        }
+
+        return true; // All payouts are approved and have UTR numbers, allow new payout
+}
+
+
+
+
+
 
 
 

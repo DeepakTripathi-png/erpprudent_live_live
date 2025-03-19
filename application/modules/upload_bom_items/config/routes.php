@@ -275,6 +275,8 @@ $route['payout_selection'] ='upload_bom_items/upload_bom_items_controller/payout
 $route['get_payout_selction_list'] ='upload_bom_items/upload_bom_items_controller/get_payout_selction_list';
 $route['save_payout_selection'] ='upload_bom_items/upload_bom_items_controller/save_payout_selection';
 $route['get_payout_selection_data_list'] ='upload_bom_items/upload_bom_items_controller/get_payout_selection_data_list';
+$route['approve_payout_selection_data'] ='upload_bom_items/upload_bom_items_controller/approve_payout_selection_data';
+
 $route['bank_payment'] ='upload_bom_items/upload_bom_items_controller/bank_payment';
 $route['bank_payment_data'] ='upload_bom_items/upload_bom_items_controller/bank_payment_data';
 $route['add_utr_no_in_payout_selection'] ='upload_bom_items/upload_bom_items_controller/add_utr_no_in_payout_selection';

@@ -14,9 +14,10 @@ $( document ).ready(function() {
             { data: 'grn_number' },
             { data: 'total_amount' },
             { data: 'account_no' },
+            { data: 'mode_of_payment' },
             { data: 'payment_date' },
-            // { data: 'status' },
-            // { data: 'action', orderable: false, searchable: false }
+            { data: 'status' },
+            { data: 'action', orderable: false, searchable: false }
         ],
         columnDefs: [
             { targets: "_all", className: "text-center align-middle" }
@@ -81,6 +82,32 @@ var payout_list = $('#payout_selection_list').DataTable({
 });
 
 
+
+let isPoDataLoaded = false;  // Flag to track if PO Data has been loaded
+
+payout_list.on('draw', function () {
+    if (!isPoDataLoaded) {  // Run only if it's the first time
+        isPoDataLoaded = true; // Set flag to prevent re-execution
+
+        setTimeout(function () {
+            let poData = getUniquePONumbersAndTotalAmounts();
+            $(".po_info").empty();  // Clear existing data to avoid duplicates
+
+            $.each(poData, function (poNumber, totalAmount) {
+                let poHtml = `
+                    <p>
+                        <span style="margin-right:100px">PO Number: <b>${poNumber}</b></span>
+                        Total Amount: <span><b>${totalAmount}</b></span>
+                    </p>
+                `;
+                $(".po_info").append(poHtml);
+            });
+        }, 1000);
+    }
+});
+
+
+
 // payout_list.on('draw', function () {
 //     setTimeout(function () {
 //         let poData = getUniquePONumbersAndTotalAmounts()  
@@ -98,19 +125,19 @@ var payout_list = $('#payout_selection_list').DataTable({
 // });
 
 
-  setTimeout(function () {
-        let poData = getUniquePONumbersAndTotalAmounts()  
-        $.each(poData, function(poNumber, totalAmount) {
+//   setTimeout(function () {
+//         let poData = getUniquePONumbersAndTotalAmounts()  
+//         $.each(poData, function(poNumber, totalAmount) {
            
-            let poHtml = `
-                <p>
-                    <span style="margin-right:100px">PO Number: <b>${poNumber}</b></span>
-                    Total Amount: <span><b>${totalAmount}</b></span>
-                </p>
-            `;
-            $(".po_info").append(poHtml);
-        });
-    }, 1000); 
+//             let poHtml = `
+//                 <p>
+//                     <span style="margin-right:100px">PO Number: <b>${poNumber}</b></span>
+//                     Total Amount: <span><b>${totalAmount}</b></span>
+//                 </p>
+//             `;
+//             $(".po_info").append(poHtml);
+//         });
+//     }, 1000); 
 $('#payout_selection_list tbody').on('click', '.openview', function () {
     // Toggle button text between "CLOSE" and "VIEW"
     $(this).text(function (i, text) {
@@ -149,13 +176,15 @@ $('#payout_selection_list tbody').on('click', '.openview', function () {
                         <table width="100%" id="originalpbomview${payout_id}" class="table table-striped table-bordered table-hover" style="text-align: left;">
                             <thead style="background: #26a69a; color: #fff; font-weight: 400;">
                                 <tr>
-                                    <th scope="col" style="vertical-align: top;">Sr.no</th>
-                                    <th scope="col" style="vertical-align: top;">GRN No</th>
-                                    <th scope="col" style="vertical-align: top;">GRN Amount</th>
-                                    <th scope="col" style="vertical-align: top;">Settled Amount</th>
-                                    <th scope="col" style="vertical-align: top;">Balance Amount</th>
-                                    <th scope="col" style="vertical-align: top;">Status</th>
-                                    <th scope="col" style="vertical-align: top;">Percentage (%)</th>
+                                        <th scope="col" style="vertical-align: top;">Sr.no</th>
+                                        <th scope="col" style="vertical-align: top;">GRN No</th>
+                                        <th scope="col" style="vertical-align: top;">GRN Amount</th>
+                                        <th scope="col" style="vertical-align: top;">Advance Amount</th>
+                                        <th scope="col" style="vertical-align: top;">Total Amount</th>
+                                        <th scope="col" style="vertical-align: top;">Amount Paid</th>
+                                        <th scope="col" style="vertical-align: top;">Balance Amount</th>
+                                        <th scope="col" style="vertical-align: top;">Status</th>
+                                        <th scope="col" style="vertical-align: top;">Percentage (%)</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -260,6 +289,7 @@ $(".bank-payment").click(function (e) {
     e.preventDefault(); 
     
     var selectedAccount = $("#account_number").val();
+    var selectedPaymentMode = $("#payment_mode").val();
     var selectedPayouts = [];
 
     $("input[name='payout_selection[]']:checked").each(function() {
@@ -271,6 +301,15 @@ $(".bank-payment").click(function (e) {
     if (selectedAccount === "") {
         $(".alert-container").removeClass("hide");
         $(".alert-container").html('<div class="alert modify alert-danger">Please select an account number.</div>');
+        setTimeout(function() {
+            $(".alert-container").addClass("hide");
+        }, 3000);
+        return;
+    }
+
+    if (selectedPaymentMode === "") {
+        $(".alert-container").removeClass("hide");
+        $(".alert-container").html('<div class="alert modify alert-danger">Please select an payment mod.</div>');
         setTimeout(function() {
             $(".alert-container").addClass("hide");
         }, 3000);
@@ -291,6 +330,7 @@ $(".bank-payment").click(function (e) {
         type: "POST",
         data: {
             account_number: selectedAccount,
+            payment_mode: selectedPaymentMode,
             payout_ids: selectedPayouts
         },
         dataType: "json",
@@ -354,3 +394,39 @@ function getUniquePONumbersAndTotalAmounts() {
 
 
 
+$(document).on('change','.approve_payout_selection_data' , function(e){
+  
+    var this1 = $(this);
+
+    bootbox.confirm("Are you sure?", function(result) 
+    {
+        if(result)
+        {
+            var payout_selection_id = this1.attr('data-payout-selection-id');
+            var url = this1.attr('rev');   
+         
+                    
+            var status = this1.val(); 
+            
+            $.ajax({
+                url : completeURL(url),
+                type:'POST',
+                dataType:'json',
+                data:{payout_selection_id:payout_selection_id,status:status},
+                success:function(data)
+                {
+                    bootbox.alert(data.msg, function() {
+                       
+                    });
+                    setTimeout(function(){
+                      location.reload();                          
+                    },1500);
+                    
+                      //  $(`#voucher_list`).DataTable().ajax.reload();
+
+                      
+                }
+            });
+        }
+    }); 
+});

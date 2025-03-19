@@ -80,12 +80,12 @@ $('#project_id').on('change', function () {
                     let tableBody = $(".grn_table_details tbody"); // Select the table's <tbody>
             
                     tableBody.empty();
-            
                     if (response.data && response.data.length > 0) {
                         // If data is available, loop through and append rows
                         response.data.forEach(function (item, index) {
                             let balanceAmount = parseFloat(item.total_amount || 0) - parseFloat(item.advance_payment || 0);
-                
+                            console.log(item.status);
+                    
                             let newRow = `
                                <tr>
                                     <th scope="row">
@@ -99,58 +99,47 @@ $('#project_id').on('change', function () {
                                     <td class="grn-amount">
                                         ${parseFloat(item.total_amount || 0).toFixed(2)}
                                         <input type="hidden" name="grn_amount[]" value="${parseFloat(item.total_amount || 0).toFixed(2)}" />
-                                        
                                     </td>
                                     <td class="total-amount">
                                         ${parseFloat(item.total_amount || 0).toFixed(2)}
-                                         <input type="hidden" name="total_amount[]" value="${parseFloat(item.total_amount || 0).toFixed(2)}" />
-                                        
+                                        <input type="hidden" name="total_amount[]" value="${parseFloat(item.total_amount || 0).toFixed(2)}" />
                                     </td>
                                     <td class="advance-amount">
-                                       <input type="text" class="form-control" name="advance_amount[]" placeholder="Enter amount" style="width: 100px;" />
-                                  
-                                        
+                                        ${item.payout_status === 'Paid' && item.status=== 'Approved' ? `${parseFloat(item.advance_payment || 0).toFixed(2)}` : `<input type="text" class="form-control" name="advance_amount[]" placeholder="Enter amount" style="width: 100px;" />`}
                                     </td>
                                     <td>
                                     ${parseFloat(item.settled_amount || 0).toFixed(2)}
                                         <input type="hidden" name="settled_amount[]" value="${parseFloat(item.settled_amount || 0).toFixed(2)}" />
                                     </td>
-                                   
                                     <td class="balance-amount">
                                         ${parseFloat(item.balance_amount || 0).toFixed(2)}
                                         <input type="hidden" name="balance_amount[]" value="${parseFloat(item.balance_amount || 0).toFixed(2)}" />
-                                       
                                     </td>
                                     <td class="old-balance-amount hide">
                                         ${parseFloat(item.balance_amount || 0).toFixed(2)}
-                                       
-                                       
                                     </td>
                                     <td>
                                     ${item.payout_status || '-'}
                                         <input type="hidden" name="payout_status[]" value="${item.payout_status || '-'}" />
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control onlyNumericInput" name="percentage[]" placeholder="Enter %" style="width: 100px;" />
-                                        <input type="hidden" class="form-control total_percengae"  value="100" />
-                                      
+                                        ${item.payout_status === 'Paid' && item.status=== 'Approved' ? '100%' : `<input type="text" class="form-control onlyNumericInput" name="percentage[]" placeholder="Enter %" style="width: 100px;" /><input type="hidden" class="form-control total_percengae"  value="100" />`}
                                     </td>
                                     <td class="amount">
                                         -
                                         <input type="hidden" name="amount_percentage[]" value="" />
-                                      
                                     </td>
                                     <td class="remove-grn-data">
                                       <div class="addDeleteButton"><span class="tooltips deleteParticularRow" data-placement="top" data-original-title="Remove" style="cursor: pointer;"><i class="fa fa-trash-o"></i></span></div>
                                     </td>
                                 </tr>
-
                             `;
-                
+                    
                             tableBody.append(newRow);
                             $(".btn-success").prop("disabled", false);
                         });
-                    } else {
+                    }
+                     else {
                         // If no data is available, append a single row with colspan
                         let noDataRow = `
                             <tr>
@@ -307,32 +296,93 @@ $('#project_id').on('change', function () {
    
     // });
     
+
+    //Old Js Commented By Deepak
     
-    $(document).on("input", "input[name='advance_amount[]']", function () {
-        let row = $(this).closest("tr");  
-        let totalAmount = parseFloat(row.find("input[name='grn_amount[]']").val()) || 0;  
-        let advanceInput = row.find("input[name='advance_amount[]']");  
-        let balance_amount = parseFloat(row.find(".old-balance-amount").text()) || 0; 
-        let advanceAmount = parseFloat(advanceInput.val()) || 0;  
-        let advance_payment = parseFloat($("input[name='total_used_advance_payment']").val()) || 0;  
+    // $(document).on("input", "input[name='advance_amount[]']", function () {
+    //     let row = $(this).closest("tr");  
+    //     let totalAmount = parseFloat(row.find("input[name='grn_amount[]']").val()) || 0;  
+    //     let advanceInput = row.find("input[name='advance_amount[]']");  
+    //     let balance_amount = parseFloat(row.find(".old-balance-amount").text()) || 0; 
+    //     let advanceAmount = parseFloat(advanceInput.val()) || 0;  
+    //     let advance_payment = parseFloat($("input[name='total_used_advance_payment']").val()) || 0;  
     
+    //     if (advanceAmount > advance_payment) {
+    //         bootbox.alert("Advance amount cannot exceed total amount!", function() {});
+    //         advanceInput.val("");  
+    //         advanceAmount = 0;  
+    //     }
+    
+    //     let balanceAmount = totalAmount - advanceAmount;
+    //     row.find(".total-amount").text(balanceAmount.toFixed(2));   
+    //     row.find("input[name='total_amount[]']").val(balanceAmount.toFixed(2));  
+    
+    //     let balanceAmount1 = balance_amount - advanceAmount;  
+    //     console.log(balance_amount); 
+    //     console.log(balanceAmount1); 
+    
+    //     row.find(".balance-amount").text(balanceAmount1.toFixed(2));   
+    //     row.find("input[name='balance_amount[]']").val(balanceAmount1.toFixed(2)); 
+    // });
+
+
+    //New JS By Deepak
+
+
+    $(document).on("input", "input[name='advance_amount[]']", function (){
+        let row = $(this).closest("tr");
+        let totalAmount = parseFloat(row.find("input[name='grn_amount[]']").val()) || 0;
+        let advanceInput = row.find("input[name='advance_amount[]']");
+        let advanceAmount = parseFloat(advanceInput.val()) || 0;
+        let oldBalanceAmount = parseFloat(row.find(".old-balance-amount").text()) || 0;
+        let advance_payment = parseFloat($("input[name='total_used_advance_payment']").val()) || 0;
+    
+        console.log("Total Amount:", totalAmount);
+        console.log("Advance Amount:", advanceAmount);
+        console.log("Old Balance Amount:", oldBalanceAmount);
+        console.log("Advance Payment:", advance_payment);
+    
+        // Ensure advance amount doesn't exceed total amount
         if (advanceAmount > advance_payment) {
-            bootbox.alert("Advance amount cannot exceed total amount!", function() {});
+            // alert("Advance amount cannot exceed total amount!");
+            bootbox.alert("Advance Amt to be adjusted should not exceed Remaining Advance Payment!", function() {});
             advanceInput.val("");  
             advanceAmount = 0;  
         }
     
-        let balanceAmount = totalAmount - advanceAmount;
-        row.find(".total-amount").text(balanceAmount.toFixed(2));   
-        row.find("input[name='total_amount[]']").val(balanceAmount.toFixed(2));  
+        let newTotalAmount = totalAmount - advanceAmount;
+        row.find(".total-amount").text(newTotalAmount.toFixed(2));
     
-        let balanceAmount1 = balance_amount - advanceAmount;  
-        console.log(balance_amount); 
-        console.log(balanceAmount1); 
+        // Update hidden input for total amount or create it if not exists
+        let totalAmountHidden = row.find("input.total-amount-hidden");
+        if (totalAmountHidden.length) {
+            totalAmountHidden.val(newTotalAmount.toFixed(2));
+        } else {
+            row.find(".total-amount").after(
+                `<input type="hidden" class="total-amount-hidden" name="total_amount[]" value="${newTotalAmount.toFixed(2)}">`
+            );
+        }
     
-        row.find(".balance-amount").text(balanceAmount1.toFixed(2));   
-        row.find("input[name='balance_amount[]']").val(balanceAmount1.toFixed(2)); 
+        let newBalanceAmount = oldBalanceAmount - advanceAmount;
+        row.find(".balance-amount").text(newBalanceAmount.toFixed(2));
+    
+        // Update hidden input for balance amount or create it if not exists
+        let balanceAmountHidden = row.find("input.balance-amount-hidden");
+        if (balanceAmountHidden.length) {
+            balanceAmountHidden.val(newBalanceAmount.toFixed(2));
+        } else {
+            row.find(".balance-amount").after(
+                `<input type="hidden" class="balance-amount-hidden" name="balance_amount[]" value="${newBalanceAmount.toFixed(2)}">`
+            );
+        }
+    
+        console.log("New Total Amount:", newTotalAmount);
+        console.log("New Balance Amount:", newBalanceAmount);
     });
+    
+
+
+    
     
 
     $(document).on('input', '.onlyNumericInput', function () {

@@ -244,6 +244,7 @@ class Common_controller extends Base_Controller
                     + $labour_cess_post + $other_cess_amt_post + $deduction_amt_post + ($security_deposit_retn_amount_post + $deposit_amount_post + $withheld_amt_post));
                     $msg1 = 'Please enter Retention Amount must be less than Balance amount '.$rec.' !';    
                 }elseif($amount_type == 'deposit_amount'){
+
                     $rec = $invoice_amount - ($final_received_payment + $payment_received_amount_post  + $gtds_amount_post + $it_tds_amount_post + $tax_deduction_amt_post
                     + $labour_cess_post + $other_cess_amt_post + $deduction_amt_post + ($security_deposit_retn_amount_post + $withheld_amt_post + $retenstion_amount_post));
                     $msg1 = 'Please enter Total Any Other Deposit must be less than Balance amount '.$rec.' !';    
@@ -264,6 +265,9 @@ class Common_controller extends Base_Controller
                     + $labour_cess_post + $other_cess_amt_post + ($security_deposit_retn_amount_post + $deposit_amount_post + $withheld_amt_post + $retenstion_amount_post));
                     $msg1 = 'Please enter Total Any Other Deductions must be less than Balance amount '.$rec.' !';    
                 }
+                 
+                
+
                 if($rec == 0){
                     $this->json->jsonReturn(array(
                         'valid'=>true,

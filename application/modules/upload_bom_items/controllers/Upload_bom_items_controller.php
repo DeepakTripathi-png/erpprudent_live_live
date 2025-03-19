@@ -18059,7 +18059,6 @@ class Upload_bom_items_controller extends Base_Controller
                       // ---------------------------------- payout ----------------------------------
                       public function payout() {
                         $this->load->view('payout');
-                        
                       }
                       
                       
@@ -18095,12 +18094,17 @@ class Upload_bom_items_controller extends Base_Controller
                         exit;
                         
                       }
+
+                      //This is exiting function  commented By Deepak
                     
                     public function get_all_grn_by_po_number() {
                        
                         $po_number = $this->input->post('po_number');
                         $grn_data = $this->admin_model->get_all_grn_data_by_po($po_number);
                         $payout_data = $this->admin_model->get_payout_data_by_po($po_number);
+                            
+                      
+
                         $payout_advance_amount = $this->admin_model->get_payout_advance_amount_data_by_po($po_number);
                         $po_details=$this->common_model->selectAllWhr('tbl_purchase_order','po_number',$po_number);
                         $pr_details= $this->admin_model->getAdvancePayment($po_details[0]->po_number);
@@ -18116,31 +18120,61 @@ class Upload_bom_items_controller extends Base_Controller
 
                       
                         $final_data = [];
+
+                       
                         
                         foreach ($grn_data as $grn) {
                           $payout = array_filter($payout_data, function ($payout) use ($grn) {
                             return $payout['grn_number'] === $grn['grn_number'];
                           });
-                          $payout = !empty($payout) ? array_values($payout)[0] : null;
+
+
+
+                          $settled_amount=null;   
+                          $balance_amount=null;
+                          $payout_status = null;
+                          $percentage=null;
+                          $advance_amount=null;
+                          $status =null;
+                          // $percentage_amount=0;
+  
+  
+  
+                          if(!empty($payout)){
+                            foreach($payout as $key => $value) {
+                              $settled_amount+=$value['settled_amount'];
+                              $advance_amount += $value['advance_amount'];
+                              $balance_amount = $value['balance_amount'];
+                              $payout_status = $value['payout_status'];
+                              $percentage = $value['percentage'];
+                              $status = $value['status'];
+                              // $percentage_amount += $value['percentage_amount'];
+                            }
+                          }
                           
-                        //   $row = [
-                        //   "grn_number" => $grn['grn_number'] ?? '-',
-                        //   "total_amount" => number_format($grn['total_amount'] ?? 0, 2),
-                        //   "settled_amount" => $payout['settled_amount'] ?? '-',
-                        //   "balance_amount" => $payout['balance_amount'] ?? number_format($grn['total_amount'] ?? 0, 2),
-                        //   "payout_status" => $payout['payout_status'] ?? 'Unpaid',
-                        //   "percentage" => $payout['percentage'] ?? '',
-                        //   "percentage_amount" => $payout['percentage'] ? number_format(($payout['percentage'] / 100) * $grn['total_amount'], 2) : '-',
-                        //   ];
-                        
+                          // pr($settled_amount);
+                          // pr($balance_amount);
+                          // pr($payout_status);
+                          // pr($percentage);exit();
+                            
+                          // $payout = !empty($payout) ? array_values($payout)[0] : null;
+                   
+
                         $row = [
                             "grn_number" => $grn['grn_number'] ?? '-',
                             "total_amount" => $grn['total_amount'] ?? 0,
-                            "settled_amount" => $payout['settled_amount'] ?? 0,
-                            "balance_amount" => $payout['balance_amount'] ?? ($grn['total_amount'] ?? 0),
-                            "payout_status" => $payout['payout_status'] ?? 'Unpaid',
-                            "percentage" => $payout['percentage'] ?? 0,
+                            // "settled_amount" => $payout['settled_amount'] ?? 0,
+                            "settled_amount" => $settled_amount+$advance_amount ?? 0,
+
+                            // "balance_amount" => $payout['balance_amount'] ?? ($grn['total_amount'] ?? 0),
+
+                            "balance_amount" =>  $balance_amount ?? ($grn['total_amount'] ?? 0),
+
+                            "payout_status" => $payout_status ?? 'Unpaid',
+                            // "percentage" => $payout['percentage'] ?? 0,
+                            "percentage" => $percentage ?? 0,
                             "percentage_amount" => $payout['percentage'] ? (($payout['percentage'] / 100) * $grn['total_amount']) : 0,
+                            'status' => $status,
                         ];
 
                           
@@ -18158,6 +18192,9 @@ class Upload_bom_items_controller extends Base_Controller
                         exit;
                         
                       }
+
+
+                
                       
                     //   public function save_payout()
                     //   {
@@ -18309,134 +18346,173 @@ class Upload_bom_items_controller extends Base_Controller
                     //   }
                       
                       
-                      public function save_payout()
-                      {
-                        
-                        
-                        $loguser_id = $this->session->userData('user_id');
-                        $logrole_id = $this->session->userData('role_id');
-                       
-                        $return_arr = ["success" => 0, "messages" => "An error occurred."];
-                        
-                        if (!empty($loguser_id) && !empty($logrole_id)) {
-                          $submenu_data = $this->common_model->selectDetailsWhr('tbl_submenu', 'action', 'save_payout');
-                          if (!empty($submenu_data->submenu_id)) {
-                            $submenu_id = $submenu_data->submenu_id;
-                            $check_permission = $this->admin_model->check_permission($submenu_id, $logrole_id);
-                            if (!empty($check_permission)) {
-                              $post_data = $this->input->post();
-                              
-                              if (empty($post_data)) {
-                                $return_arr['messages'] = "Invalid request.";
-                                echo json_encode($return_arr);
-                                exit;
-                              }
-                              
-                              $payout_count = count($this->admin_model->get_payout_list_data());
-                              $financial_year = $this->getFinancialYear();
-                              $po_number = $post_data['po_number'];
-                              $parts = explode('/', $po_number);
-                              $number = end($parts);
-                              $payout_number = "PO-" . $number . "/" . $financial_year . "/" . ($payout_count + 1);
-                              
-                              $payout_id_exit = $post_data['payout_id'];
-                              $current_datetime = date("Y-m-d H:i:s");
-                              
-                              $data = [
-                              "project_id" => $post_data['project_id'],
-                              "po_number" => $post_data['po_number'],
-                              "po_amount" => $post_data['po_amount'],
-                              "advance_amount" => $post_data['advance_payment'],
-                              "payment_date" => $post_data['payment_date'],
-                              "status" => "Pending",
-                              "display" => "Y",
-                              "updated_by" => $loguser_id,
-                              "updated_on" => $current_datetime
-                              ];
-                              
-                              if (empty($payout_id_exit)) {
-                                $data["payout_number"] = $payout_number;
-                                $data["created_by"] = $loguser_id;
-                                $data["created_on"] = $current_datetime;
-                                $payout_id = $this->admin_model->savePayoutData($data);
-                              } else {
-                                   unset($data['po_number']);
-                                $payout_id = $this->admin_model->updatePayoutData($data, $payout_id_exit);
-                                $payout_id = $payout_id_exit;
-                              }
-                              
-                              if (!$payout_id) {
-                                $return_arr['messages'] = "Failed to save payout data.";
-                                echo json_encode($return_arr);
-                                exit;
-                              }
-                              
-                              $grn_number = $post_data['grn_number'] ?? [];
-                              $grn_amount = $post_data['grn_amount'] ?? [];
-                              $advance_amount = $post_data['advance_amount'] ?? [];
-                              $percentage = $post_data['percentage'] ?? [];
-                              // $total_amount = $post_data['grn_amount'] - $post_data['advance_amount'];
-                              $total_amount = [];
 
-                              foreach ($grn_amount as $key => $value) {
-                                  // Ensure that both grn_amount and advance_amount exist for this index
-                                  $total_amount[$key] = $value - ($advance_amount[$key] ?? 0);
-                              }
-                              $item_details_arr = [];
-                              
-                              foreach ($grn_number as $index => $grn) {
-                                // Calculate settled amount, balance amount, and payout status
-                                $totalAmount = (float) ($total_amount[$index] ?? 0);
-                                $percentageValue = (float) ($percentage[$index] ?? 0);
-                                $settledAmount = ($percentageValue / 100) * $totalAmount;
-                                $balanceAmount = $totalAmount - $settledAmount;
-                                $payoutStatus = $balanceAmount > 0 ? 'Partial Paid' : 'Paid';
-                                
-                                $item_details_arr[] = [
-                                "payout_id" => $payout_id,
-                                "grn_number" => $grn,
-                                "grn_amount" => number_format($grn_amount[$index] ?? 0, 2, '.', ''),
-                                "advance_amount" => number_format($advance_amount[$index] ?? 0, 2, '.', ''),
-                                "total_amount" => number_format($totalAmount, 2, '.', ''),
-                                "settled_amount" => number_format($settledAmount, 2, '.', ''),
-                                "balance_amount" => number_format($balanceAmount, 2, '.', ''),
-                                "percentage" => $percentageValue,
-                                "percentage_amount" => number_format($settledAmount, 2, '.', ''),
-                                "display" => 'Y',
-                                "payout_status" => $payoutStatus,
-                                "status" => "pending"
-                                ];
-                              }
-                              // pr($item_details_arr,1);
-                              if (empty($payout_id_exit)) {
-                                $payout_item_id = $this->admin_model->savePayoutDataItem($item_details_arr);
-                              } else {
-                               
-                                $payout_item_id = $this->admin_model->updatePayoutDataItem($item_details_arr);
-                                
-                              }
-                              // pr($this->db->last_query());
-                              // pr($payout_id_exit);
-                              // 	pr("ok",1);
-                              
-                              if ($payout_item_id > 0) {
-                                $return_arr['success'] = 1;
-                                $return_arr['messages'] = empty($payout_id_exit) ? "Payout Data Added successfully." : "Payout Data Updated successfully.";
-                              } else {
-                                $return_arr['messages'] = "Failed to save payout item details.";
-                              }
-                            } else {
-                              $return_arr['messages'] = "You do not have permission to perform this action.";
+                    //Payout changes Saved By Deepak 
+                    public function save_payout()
+                    {
+
+                      // pr($this->input->post());exit();
+                     
+                     
+                      $loguser_id = $this->session->userData('user_id');
+                      $logrole_id = $this->session->userData('role_id');
+                     
+                      $return_arr = ["success" => 0, "messages" => "An error occurred."];
+                     
+                      if (!empty($loguser_id) && !empty($logrole_id)) {
+                        $submenu_data = $this->common_model->selectDetailsWhr('tbl_submenu', 'action', 'save_payout');
+                        if (!empty($submenu_data->submenu_id)) {
+                          $submenu_id = $submenu_data->submenu_id;
+                          $check_permission = $this->admin_model->check_permission($submenu_id, $logrole_id);
+                          if (!empty($check_permission)) {
+                            $post_data = $this->input->post();
+                           
+                            if (empty($post_data)) {
+                              $return_arr['messages'] = "Invalid request.";
+                              echo json_encode($return_arr);
+                              exit;
                             }
+
+                           $po_number = $post_data['po_number'];
+
+
+                       
+ 
+                           if(!($this->admin_model->get_bank_payment_status_data_by_po_number($po_number))){
+                            $return_arr['messages'] = "Processed payment against this PO is pending for approval";
+                              echo json_encode($return_arr);
+                              exit;
+                           }
+
+                          
+                           
+                            $payout_count = count($this->admin_model->get_payout_list_data());
+                            $financial_year = $this->getFinancialYear();
+                            $po_number = $post_data['po_number'];
+                            $parts = explode('/', $po_number);
+                            $number = end($parts);
+                            $payout_number = "PO-" . $number . "/" . $financial_year . "/" . ($payout_count + 1);
+                           
+                            $payout_id_exit = $post_data['payout_id'];
+                            $current_datetime = date("Y-m-d H:i:s");
+                           
+                            $data = [
+                            "project_id" => $post_data['project_id'],
+                            "po_number" => $post_data['po_number'],
+                            "po_amount" => $post_data['po_amount'],
+                            "advance_amount" => $post_data['advance_payment'],
+                            "payment_date" => $post_data['payment_date'],
+                            "status" => "Pending",
+                            "display" => "Y",
+                            "updated_by" => $loguser_id,
+                            "updated_on" => $current_datetime
+                            ];
+                           
+                            if (empty($payout_id_exit)) {
+                              $data["payout_number"] = $payout_number;
+                              $data["created_by"] = $loguser_id;
+                              $data["created_on"] = $current_datetime;
+                              $payout_id = $this->admin_model->savePayoutData($data);
+                            } else {
+                                 unset($data['po_number']);
+                              $payout_id = $this->admin_model->updatePayoutData($data, $payout_id_exit);
+                              $payout_id = $payout_id_exit;
+                            }
+                           
+                            if (!$payout_id) {
+                              $return_arr['messages'] = "Failed to save payout data.";
+                              echo json_encode($return_arr);
+                              exit;
+                            }
+                           
+                            $grn_number = $post_data['grn_number'] ?? [];
+                            $grn_amount = $post_data['grn_amount'] ?? [];
+                            $advance_amount = $post_data['advance_amount'] ?? [];
+                            $percentage = $post_data['percentage'] ?? [];
+                            $balance_amount = $post_data['balance_amount'] ?? [];
+                            // $total_amount = $post_data['grn_amount'] - $post_data['advance_amount'];
+                            $total_amount = [];
+
+                            foreach ($grn_amount as $key => $value) {
+                                // Ensure that both grn_amount and advance_amount exist for this index
+                                $total_amount[$key] = $value - ($advance_amount[$key] ?? 0);
+                            }
+                            $item_details_arr = [];
+                           
+                            foreach ($grn_number as $index => $grn) {
+                             
+                              $data = $this->admin_model->get_payout_data_by_grn_number($grn);
+
+                              if(!empty($data)){
+                                $totalAmount = (float) ($balance_amount[$index] ?? 0);
+                              }else{
+                                $totalAmount = (float) ($total_amount[$index] ?? 0);
+                              }
+
+                             
+
+
+
+                              // Calculate settled amount, balance amount, and payout status
+                              // $totalAmount = (float) ($total_amount[$index] ?? 0);
+                              $percentageValue = (float) ($percentage[$index] ?? 0);
+                              $settledAmount = ($percentageValue / 100) * $totalAmount;  
+                              $balanceAmount = $totalAmount - $settledAmount;
+                              $payoutStatus = $balanceAmount > 0 ? 'Partial Paid' : 'Paid';
+                             
+                              $item_details_arr[] = [
+                              "payout_id" => $payout_id,
+                              "grn_number" => $grn,
+                              "grn_amount" => number_format($grn_amount[$index] ?? 0, 2, '.', ''),
+                              "advance_amount" => number_format($advance_amount[$index] ?? 0, 2, '.', ''),
+                              "total_amount" => number_format($totalAmount, 2, '.', ''),
+                              "settled_amount" => number_format($settledAmount, 2, '.', ''),
+                              "balance_amount" => number_format($balanceAmount, 2, '.', ''),
+                              "percentage" => $percentageValue,
+                              "percentage_amount" => number_format($settledAmount, 2, '.', ''),
+                              "display" => 'Y',
+                              "payout_status" => $payoutStatus,
+                              "status" => "pending"
+                              ];
+                            }
+
+                           
+                            // pr($item_details_arr,1);
+                            if (empty($payout_id_exit)) {
+                              $payout_item_id = $this->admin_model->savePayoutDataItem($item_details_arr);
+                            } else {
+                             
+                              $payout_item_id = $this->admin_model->updatePayoutDataItem($item_details_arr);
+                             
+                            }
+                            // pr($this->db->last_query());
+                            // pr($payout_id_exit);
+                            //  pr("ok",1);
+                           
+                            if ($payout_item_id > 0) {
+                              $return_arr['success'] = 1;
+                              $return_arr['messages'] = empty($payout_id_exit) ? "Payout Data Added successfully." : "Payout Data Updated successfully.";
+                            } else {
+                              $return_arr['messages'] = "Failed to save payout item details.";
+                            }
+                          } else {
+                            $return_arr['messages'] = "You do not have permission to perform this action.";
                           }
-                        } else {
-                          $return_arr['messages'] = "User is not logged in.";
                         }
-                        
-                        echo json_encode($return_arr);
-                        exit;
+                      } else {
+                        $return_arr['messages'] = "User is not logged in.";
                       }
+                     
+                      echo json_encode($return_arr);
+                      exit;
+                    }
                       
+
+              
+                      
+                      
+
+
                      
                       
                     //   public function get_payout_list()
@@ -18690,26 +18766,32 @@ class Upload_bom_items_controller extends Base_Controller
                         ]);
                       }
                     }
-                   public function edit_payout_data()
-                    {
-                      $loguser_id = $this->session->userData('user_id');
-                      $logrole_id = $this->session->userData('role_id');
-                      $payout_id = $this->input->post('payout_id');
-                      
-                      $payout_data = $this->admin_model->get_payout_data_by_id($payout_id);
-                      $payout_advance_amount = $this->admin_model->get_payout_advance_amount_data_by_po($payout_data[0]['po_number']);
-                      $total_used_advance_payment = 0;
 
-                      foreach ($payout_advance_amount as $item) {
-                          $total_used_advance_payment += is_numeric($item["advance_amount"]) ? (float)$item["advance_amount"] : 0;
+                      public function edit_payout_data()
+                      {
+                        $loguser_id = $this->session->userData('user_id');
+                        $logrole_id = $this->session->userData('role_id');
+                        $payout_id = $this->input->post('payout_id');
+                        
+                        $payout_data = $this->admin_model->get_payout_data_by_id($payout_id);
+                 
+
+                        $payout_advance_amount = $this->admin_model->get_payout_advance_amount_data_by_po($payout_data[0]['po_number']);
+                        $total_used_advance_payment = 0;
+
+                        foreach ($payout_advance_amount as $item) {
+                            $total_used_advance_payment += is_numeric($item["advance_amount"]) ? (float)$item["advance_amount"] : 0;
+                        }
+                        $data['data'] = $payout_data;
+                        // $data['total_used_advance_payment'] = $payout_data[0]['advance_payment'] - $total_used_advance_payment;
+                        $data['total_used_advance_payment'] = $payout_data[0]['advance_payment'];
+                        $data['balance_amount'] = $payout_data[0]['balance_amount']+$payout_data[0]['settled_amount'];
+
+                        // pr($data,1);
+                        echo json_encode($data);
+                        exit;
+                      
                       }
-                      $data['data'] = $payout_data;
-                      $data['total_used_advance_payment'] = $payout_data[0]['advance_payment'] - $total_used_advance_payment;
-                      // pr($data,1);
-                      echo json_encode($data);
-                      exit;
-                    
-                    }
                     
                     
                     // public function payout_list_display()
@@ -18779,11 +18861,11 @@ class Upload_bom_items_controller extends Base_Controller
                         $row = [
                         $i,
                         $grn_number,
-                        number_format((float)$grn_amount, 2, '.', ''), // GRN Amount
-                        number_format((float)$advance_amount, 2, '.', ''), // GRN Amount
-                        number_format((float)$total_amount, 2, '.', ''), // GRN Amount
+                        number_format((float)$grn_amount, 2, '.', ''), 
+                        number_format((float)$advance_amount, 2, '.', ''), 
+                        number_format((float)$total_amount, 2, '.', ''), 
                         $settled_amount,
-                        number_format((float)$balance_amount, 2, '.', ''), // Balance Amount
+                        number_format((float)$balance_amount, 2, '.', ''), 
                         $status,
                         $percentage,
                         ];
@@ -18895,7 +18977,10 @@ class Upload_bom_items_controller extends Base_Controller
                       public function save_payout_selection(){
                         $loguser_id = $this->session->userData('user_id');
                         $account_number = $_POST['account_number'];
+                        $payment_mod = $_POST['payment_mode'];
                         $payout_ids = $_POST['payout_ids']; 
+
+                   
                     
                         if (!empty($account_number) && !empty($payout_ids) && is_array($payout_ids)) {
                             $insert_data = [];
@@ -18904,11 +18989,15 @@ class Upload_bom_items_controller extends Base_Controller
                                 $insert_data[] = [
                                     "account_no" => $account_number,
                                     "payout_ids" => $payout_id, 
+                                    "mode_of_payment" => $payment_mod,
                                     "status" => "Pending",
                                     "created_by" => $loguser_id,
                                     "created_on" => date("Y-m-d H:i:s"),
                                 ];
                             }
+
+                            // pr($insert_data);
+                            // exit();
                     
                             $result = $this->admin_model->save_payout_selection_data($insert_data);
                     
@@ -18925,74 +19014,221 @@ class Upload_bom_items_controller extends Base_Controller
                     
              
 
-                  public function get_payout_selection_data_list() {
-                    $result = [];
+                  // public function get_payout_selection_data_list() {
+                  //   $result = [];
                    
-                    $data = $this->admin_model->get_payout_selection_data_list();
+                  //   $data = $this->admin_model->get_payout_selection_data_list();
                     
                  
-                    $processedData = [];
+                  //   $processedData = [];
                 
                    
-                    foreach ($data as $row) {
-                        $payoutId = $row['payout_ids']; 
-                        $grnNumber = $row['grn_number'];
-                        $piId = $row['pi_id'];
+                  //   foreach ($data as $row) {
+                  //       $payoutId = $row['payout_ids']; 
+                  //       $grnNumber = $row['grn_number'];
+                  //       $piId = $row['pi_id'];
                 
                        
-                        if (!isset($processedData[$payoutId])) {
+                  //       if (!isset($processedData[$payoutId])) {
                           
-                            $processedData[$payoutId] = $row;
-                            $processedData[$payoutId]['grn_number'] = [$grnNumber]; 
-                            $processedData[$payoutId]['percentage_amount_sum'] = $row['percentage_amount']; 
-                            $processedData[$payoutId]['pi_ids'] = [$piId]; 
-                        } else {
+                  //           $processedData[$payoutId] = $row;
+                  //           $processedData[$payoutId]['grn_number'] = [$grnNumber]; 
+                  //           $processedData[$payoutId]['percentage_amount_sum'] = $row['percentage_amount']; 
+                  //           $processedData[$payoutId]['pi_ids'] = [$piId]; 
+                  //       } else {
                             
-                            if (!in_array($grnNumber, $processedData[$payoutId]['grn_number'])) {
-                                $processedData[$payoutId]['grn_number'][] = $grnNumber;
-                            }
+                  //           if (!in_array($grnNumber, $processedData[$payoutId]['grn_number'])) {
+                  //               $processedData[$payoutId]['grn_number'][] = $grnNumber;
+                  //           }
                 
                            
-                            if (!in_array($piId, $processedData[$payoutId]['pi_ids'])) {
-                                $processedData[$payoutId]['percentage_amount_sum'] += $row['percentage_amount'];
-                                $processedData[$payoutId]['pi_ids'][] = $piId;
-                            }
-                        }
-                    }
+                  //           if (!in_array($piId, $processedData[$payoutId]['pi_ids'])) {
+                  //               $processedData[$payoutId]['percentage_amount_sum'] += $row['percentage_amount'];
+                  //               $processedData[$payoutId]['pi_ids'][] = $piId;
+                  //           }
+                  //       }
+                  //   }
                 
                     
-                    foreach ($processedData as &$row) {
-                        $row['grn_number'] = implode(', ', $row['grn_number']);
-                        $row['pi_ids'] = implode(', ', $row['pi_ids']);
-                    }
+                  //   foreach ($processedData as &$row) {
+                  //       $row['grn_number'] = implode(', ', $row['grn_number']);
+                  //       $row['pi_ids'] = implode(', ', $row['pi_ids']);
+                  //   }
                 
-                    $addedPayouts = [];
+                  //   $addedPayouts = [];
 
-                    foreach ($processedData as $key => $value) {
+                  //   foreach ($processedData as $key => $value) {
                       
-                        if (!in_array($value['payout_number'], $addedPayouts)) {
-                            $result[] = [
-                                "bp_code" => $value["bp_code"],
-                                "payout_number" => $value["payout_number"], 
-                                "po_number" => $value["po_number"],
-                                "grn_number" => $value["grn_number"], 
-                                "total_amount" => sprintf("%.2f", $value["percentage_amount_sum"]),  
-                                "account_no" => $value["account_no"],
-                                "payment_date" => $value["payment_date"]
-                            ];
+                  //       if (!in_array($value['payout_number'], $addedPayouts)) {
+                  //           $result[] = [
+                  //               "bp_code" => $value["bp_code"],
+                  //               "payout_number" => $value["payout_number"], 
+                  //               "po_number" => $value["po_number"],
+                  //               "grn_number" => $value["grn_number"], 
+                  //               "total_amount" => sprintf("%.2f", $value["percentage_amount_sum"]),  
+                  //               "account_no" => $value["account_no"],
+                  //               "mode_of_payment" => $value["mode_of_payment"],
+                  //               "payment_date" => $value["payment_date"]
+                  //           ];
                        
-                            $addedPayouts[] = $value['payout_number'];
-                        }
+                  //           $addedPayouts[] = $value['payout_number'];
+                  //       }
+                  //   }
+                
+                   
+                   
+                
+                   
+                  //   echo json_encode(['data' => $result]);
+                  //   exit;
+                  // }
+
+
+                    public function get_payout_selection_data_list() {
+                      $result = [];
+                  
+                      $data = $this->admin_model->get_payout_selection_data_list();
+                  
+                      $processedData = [];
+                  
+                      foreach ($data as $row) {
+                          $payoutId = $row['payout_ids'];
+                          $grnNumber = $row['grn_number'];
+                          $piId = $row['pi_id'];
+                  
+                          if (!isset($processedData[$payoutId])) {
+                              $processedData[$payoutId] = $row;
+                              $processedData[$payoutId]['grn_number'] = [$grnNumber];
+                              $processedData[$payoutId]['percentage_amount_sum'] = $row['percentage_amount'];
+                              $processedData[$payoutId]['pi_ids'] = [$piId];
+                          } else {
+                              if (!in_array($grnNumber, $processedData[$payoutId]['grn_number'])) {
+                                  $processedData[$payoutId]['grn_number'][] = $grnNumber;
+                              }
+                  
+                              if (!in_array($piId, $processedData[$payoutId]['pi_ids'])) {
+                                  $processedData[$payoutId]['percentage_amount_sum'] += $row['percentage_amount'];
+                                  $processedData[$payoutId]['pi_ids'][] = $piId;
+                              }
+                          }
+                      }
+                  
+                      foreach ($processedData as &$row) {
+                          $row['grn_number'] = implode(', ', $row['grn_number']);
+                          $row['pi_ids'] = implode(', ', $row['pi_ids']);
+                      }
+                  
+                      $addedPayouts = [];
+                  
+                      foreach ($processedData as $key => $value) {
+                          if (!in_array($value['payout_number'], $addedPayouts)) {
+                              $statusDropdown = '';
+                              if (!empty($value['ps_status']) && $value['ps_status'] != 'Approved') {
+                                  $statusDropdown = '<select class="statusselectbom approve_payout_selection_data"
+                                                      id="statusselect' . htmlspecialchars($value['id']) . '"
+                                                      rel="' . htmlspecialchars($value['id']) . '"
+                                                      rev="approve_payout_selection_data"
+                                                      data-payout-selection-id="' . htmlspecialchars($value['id']) . '">
+                                                      <option class="statusselectoption" value="Pending" ' . (($value['ps_status'] == 'Pending') ? 'selected' : '') . '>Pending</option>
+                                                      <option class="statusselectoption" value="Approved" ' . (($value['ps_status'] == 'Approved') ? 'selected' : '') . '>Approve</option>
+                                                      <option class="statusselectoption" value="Reject" ' . (($value['ps_status'] == 'Reject') ? 'selected' : '') . '>Reject</option>
+                                                  </select>';
+                              }
+                  
+                              $result[] = [
+                                  "bp_code" => $value["bp_code"],
+                                  "payout_number" => $value["payout_number"],
+                                  "po_number" => $value["po_number"],
+                                  "grn_number" => $value["grn_number"],
+                                  "total_amount" => sprintf("%.2f", $value["percentage_amount_sum"]),
+                                  "account_no" => $value["account_no"],
+                                  "mode_of_payment" => $value["mode_of_payment"],
+                                  "payment_date" => $value["payment_date"],
+                                  "status" => !empty($value['ps_status']) ?
+                                      ($value['ps_status'] == 'Approved' ? '<span style="color:green;font-weight:600;">Approved</span>' :
+                                      ($value['ps_status'] == 'Pending' ? '<span style="color:orange;font-weight:600;">Pending</span>' :
+                                      ($value['ps_status'] == 'Reject' ? '<span style="color:red;font-weight:600;">Reject</span>' : '-'))) : '-',
+                                  "action" => $statusDropdown
+                              ];
+                  
+                              $addedPayouts[] = $value['payout_number'];
+                          }
+                      }
+                  
+                      echo json_encode(['data' => $result]);
+                      exit;
                     }
-                
-                   
-                   
-                
-                   
-                    echo json_encode(['data' => $result]);
-                    exit;
+
+
+
+
+
+                  public function approve_payout_selection_data()
+                  {
+                    $loguser_id = $this->session->userData('user_id');
+                    $logrole_id = $this->session->userData('role_id');
+
+                    
+                    
+                    if (!empty($loguser_id) && !empty($logrole_id)) {
+                      $submenu_data = $this->common_model->selectDetailsWhr('tbl_submenu', 'action', 'approve_payout_selection_data');
+                      
+                      if (!empty($submenu_data->submenu_id)) {
+                        $submenu_id = $submenu_data->submenu_id;
+                        $check_permission = $this->admin_model->check_permission($submenu_id, $logrole_id);
+                        
+                        if (!empty($check_permission)) {
+                          $payout_selection_id = $this->input->post('payout_selection_id');
+                          
+                          $status = $this->input->post('status');
+                          
+                          
+                          // pr($payout_id);
+                          // pr($status);
+                          
+                          
+                          $data = [
+                          'status' => $status,
+                          'approved_by' => $loguser_id,
+                          'approved_on' => date('Y-m-d H:i:s')
+                          ];
+                          
+                          $update_data = $this->common_model->updateDetails('tbl_payout_selection', 'id', $payout_selection_id, $data);
+                          
+                          if (!empty($update_data)) {
+                            $update_item_data = $this->common_model->updateDetails('tbl_payout_selection', 'id', $payout_selection_id, $data);
+                            $this->json->jsonReturn([
+                            'valid' => TRUE,
+                            'msg' => '<div class="alert modify alert-success">Payout Data status changed Successfully!</div>'
+                            ]);
+                            return;
+                          }
+                        } else {
+                          $this->json->jsonReturn([
+                          'valid' => FALSE,
+                          'msg' => '<div class="alert modify alert-danger"><strong>Error!</strong> You have no permission!</div>'
+                          ]);
+                          return;
+                        }
+                      } else {
+                        $this->json->jsonReturn([
+                        'valid' => FALSE,
+                        'msg' => '<div class="alert modify alert-danger"><strong>Error!</strong> Submenu not found!</div>'
+                        ]);
+                        return;
+                      }
+                    } else {
+                      $this->json->jsonReturn([
+                      'valid' => FALSE,
+                      'msg' => '<div class="alert modify alert-danger"><strong>Error!</strong> You are not logged in or session expired!</div>'
+                      ]);
+                    }
                   }
-                
+
+
+
+
+                  
                     public function bank_payment() {
                       $this->load->view('bank_payment');
                     }
@@ -19000,7 +19236,7 @@ class Upload_bom_items_controller extends Base_Controller
                     public function bank_payment_data() {
                       $result = [];
                      
-                      $data = $this->admin_model->get_payout_selection_data_list();
+                      $data = $this->admin_model->get_payout_selection_data_aproved_list();
                       
                    
                       $processedData = [];

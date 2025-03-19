@@ -163,25 +163,39 @@
                                         </div>
                                         
                                     </div>
-                                    <div class="form-actions" >
-                                    <label for="payout_selection">Account Number</label>
-                                    <select id="account_number" class="form-control" name="account_number" style="width: 30%;">
-                                        <option value="">-- Select --</option>
-                                        <option value="018011300001395/Janakalyan Sahakari Bank Ltd (Prudent Controls)">018011300001395/Janakalyan Sahakari Bank Ltd (Prudent Controls)</option>
-                                        <option value="3736008730003259/Punjab National Bank (Prudent Controls)">3736008730003259/Punjab National Bank (Prudent Controls)</option>
-                                        <option value="CA\1395/Janaklyan Sahakari Bank (Prudent Controls)">CA\1395/Janaklyan Sahakari Bank (Prudent Controls)</option>
-                                        <option value="5651000009667/Union Bank of India (Prudent Controls)">5651000009667/Union Bank of India (Prudent Controls)</option>
-                                        <option value="1199385225148537/Standard Chartered Bank (Prudent Controls)">1199385225148537/Standard Chartered Bank (Prudent Controls)</option>
-                                        <option value="510101000653135/Union Bank of India (Prudent Controls)">510101000653135/Union Bank of India (Prudent Controls)</option>
-
-                                        <option value="018013500000016/Janakalyan Sahakari Bank Ltd (Prudent EPC)">018013500000016/Janakalyan Sahakari Bank Ltd (Prudent EPC)</option>
-                                        <option value="3736008730003213/Punjab National Bank (Prudent EPC)">3736008730003213/Punjab National Bank (Prudent EPC)</option>
-                                        <option value="16431012000831/Punjab National Bank (Prudent EPC)">16431012000831/Punjab National Bank (Prudent EPC)</option>
-                                        <option value="2301/114/Janta Sahakari Bank Ltd (Prudent EPC)">2301/114/Janta Sahakari Bank Ltd (Prudent EPC)</option>
-                                        <option value="018011300001389/Jankalyan Sahakari Bank (Prudent EPC)">018011300001389/Jankalyan Sahakari Bank (Prudent EPC)</option>
-                                    </select>
-                                    <br>
+                                    <div class="form-actions" style="display: flex; gap: 20px; margin-bottom: 20px;">
+                                    <div>
+                                        <label for="account_number">Account Number</label>
+                                        <select id="account_number" class="form-control" name="account_number" style="width: 300px;">
+                                            <option value="">-- Select --</option>
+                                            <option value="018011300001395/Janakalyan Sahakari Bank Ltd (Prudent Controls)">018011300001395/Janakalyan Sahakari Bank Ltd (Prudent Controls)</option>
+                                            <option value="3736008730003259/Punjab National Bank (Prudent Controls)">3736008730003259/Punjab National Bank (Prudent Controls)</option>
+                                            <option value="CA\1395/Janaklyan Sahakari Bank (Prudent Controls)">CA\1395/Janaklyan Sahakari Bank (Prudent Controls)</option>
+                                            <option value="5651000009667/Union Bank of India (Prudent Controls)">5651000009667/Union Bank of India (Prudent Controls)</option>
+                                            <option value="1199385225148537/Standard Chartered Bank (Prudent Controls)">1199385225148537/Standard Chartered Bank (Prudent Controls)</option>
+                                            <option value="510101000653135/Union Bank of India (Prudent Controls)">510101000653135/Union Bank of India (Prudent Controls)</option>
+                                            <option value="018013500000016/Janakalyan Sahakari Bank Ltd (Prudent EPC)">018013500000016/Janakalyan Sahakari Bank Ltd (Prudent EPC)</option>
+                                            <option value="3736008730003213/Punjab National Bank (Prudent EPC)">3736008730003213/Punjab National Bank (Prudent EPC)</option>
+                                            <option value="16431012000831/Punjab National Bank (Prudent EPC)">16431012000831/Punjab National Bank (Prudent EPC)</option>
+                                            <option value="2301/114/Janta Sahakari Bank Ltd (Prudent EPC)">2301/114/Janta Sahakari Bank Ltd (Prudent EPC)</option>
+                                            <option value="018011300001389/Jankalyan Sahakari Bank (Prudent EPC)">018011300001389/Jankalyan Sahakari Bank (Prudent EPC)</option>
+                                        </select>
                                     </div>
+
+                                    <div>
+                                        <label for="payment_mode">Mode of Payment</label>
+                                        <select id="payment_mode" class="form-control" name="payment_mode" style="width: 300px;">
+                                            <option value="">Select Payment Mode</option>
+                                            <option value="Debit Card">Debit Card</option>
+                                            <option value="Bank Transfer">Bank Transfer (UPI/NEFT/RTGS)</option>
+                                            <option value="Cash">Cash</option>
+                                            <option value="PDC">PDC</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+
+
                                     <table width="100%" id="payout_selection_list" class="table table-striped table-bordered table-hover">
                                         <thead>
                                             <tr>
@@ -229,9 +243,10 @@
                                                 <th scope="col" style="vertical-align: top; text-align: center;">GRN Number</th>
                                                 <th scope="col" style="vertical-align: top; text-align: center;">Total Amount</th>
                                                 <th scope="col" style="vertical-align: top; text-align: center;">Account Number</th>
+                                                <th scope="col" style="vertical-align: top; text-align: center;">Payment Mode</th>
                                                 <th scope="col" style="vertical-align: top; text-align: center;">Payment Date</th>
-                                                <!-- <th scope="col" style="vertical-align: top; text-align: center;">Status</th>
-                                                <th scope="col" style="vertical-align: top; text-align: center;">Action</th> -->
+                                                <th scope="col" style="vertical-align: top; text-align: center;">Status</th>
+                                                <th scope="col" style="vertical-align: top; text-align: center;">Action</th> 
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
